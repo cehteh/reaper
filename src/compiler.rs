@@ -6,7 +6,7 @@ use crate::parser::{
     Literal,
     BinaryExpression,
     BinaryExpressionKind,
-    VariableExpression,
+    VariableExpression, PrintStatement, FnStatement, ExpressionStatement, ReturnStatement, IfStatement, BlockStatement,
 };
 
 pub struct Compiler {
@@ -78,59 +78,91 @@ trait Codegen {
 impl Codegen for Statement {
     fn codegen(&self, compiler: &mut Compiler) {
         match self {
-            Statement::Print(print_statement) => {
-                print_statement.expression.codegen(compiler);
-                compiler.emit_bytes(&[Opcode::Print]);
-            }
-            Statement::Fn(fn_statement) => {
-                let jmp_idx = compiler.emit_bytes(&[Opcode::Jmp(0xFFFF)]);
-                let start = compiler.bytecode.len();
-                compiler.functions.insert(fn_statement.name.clone(), jmp_idx);
-                // println!("Compiler.functions: {:?}", compiler.functions);
-                for argument in &fn_statement.arguments {
-                    compiler.locals.push(argument.clone());
-                }
-                for statement in &fn_statement.body {
-                    statement.codegen(compiler);
-                }
-                compiler.emit_bytes(&[Opcode::Null, Opcode::Ret]);
-                let fn_size = compiler.bytecode.len() - start;
-                compiler.bytecode[jmp_idx] = Opcode::Jmp(fn_size as i64);
-            }
-            Statement::Expression(expr_statement) => {
-                match &expr_statement.expression {
-                    Expression::Call(call_expr) => call_expr.codegen(compiler),
-                    _ => {}
-                }
-            }
-            Statement::Return(return_statement) => {
-                return_statement.expression.codegen(compiler);
-                let mut deepset_no = compiler.locals.len();
-                while deepset_no > 0 {
-                    compiler.emit_bytes(&[Opcode::Deepset(deepset_no)]);
-                    deepset_no -= 1;
-                }
-                compiler.emit_bytes(&[Opcode::Ret]);
-            }
-            Statement::If(if_statement) => {
-                if_statement.condition.codegen(compiler);
-                let jz_idx = compiler.emit_bytes(&[Opcode::Jz(0xFFFF)]);
-                let start = compiler.bytecode.len();
-                if_statement.if_branch.codegen(compiler);
-                let if_branch_size = compiler.bytecode.len() - start;
-                compiler.bytecode[jz_idx] = Opcode::Jz(if_branch_size as i64);
-                let else_idx = compiler.emit_bytes(&[Opcode::Jmp(0xFFFF)]);
-                let start_else = compiler.bytecode.len();
-                if_statement.else_branch.codegen(compiler);
-                let else_branch_size = compiler.bytecode.len() - start_else;
-                compiler.bytecode[else_idx] = Opcode::Jmp(else_branch_size as i64);
-            }
-            Statement::Block(block_statement) => {
-                for statement in &block_statement.body {
-                    statement.codegen(compiler);
-                }
-            }
+            Statement::Print(print_statement) => print_statement.codegen(compiler),
+            Statement::Fn(fn_statement) => fn_statement.codegen(compiler),
+            Statement::Expression(expr_statement) => expr_statement.codegen(compiler),
+            Statement::Return(return_statement) => return_statement.codegen(compiler),
+            Statement::If(if_statement) => if_statement.codegen(compiler),
+            Statement::Block(block_statement) => block_statement.codegen(compiler),
             _ => {}
+        }
+    }
+}
+
+impl Codegen for PrintStatement {
+    fn codegen(&self, compiler: &mut Compiler) {
+        self.expression.codegen(compiler);
+        compiler.emit_bytes(&[Opcode::Print]);
+    }
+}
+
+impl Codegen for FnStatement {
+    fn codegen(&self, compiler: &mut Compiler) {
+        let jmp_idx = compiler.emit_bytes(&[Opcode::Jmp(0xFFFF)]);
+        let start = compiler.bytecode.len();
+
+        compiler.functions.insert(self.name.clone(), jmp_idx);
+
+        for argument in &self.arguments {
+            compiler.locals.push(argument.clone());
+        }
+
+        for statement in &self.body {
+            statement.codegen(compiler);
+        }
+
+        compiler.emit_bytes(&[Opcode::Null, Opcode::Ret]);
+
+        let fn_size = compiler.bytecode.len() - start;
+        compiler.bytecode[jmp_idx] = Opcode::Jmp(fn_size as i64);
+    }
+}
+
+impl Codegen for ExpressionStatement {
+    fn codegen(&self, compiler: &mut Compiler) {
+        match &self.expression {
+            Expression::Call(call_expr) => call_expr.codegen(compiler),
+            _ => unimplemented!(),
+        }
+    }
+}
+
+impl Codegen for ReturnStatement {
+    fn codegen(&self, compiler: &mut Compiler) {
+        self.expression.codegen(compiler);
+
+        let mut deepset_no = compiler.locals.len();
+        while deepset_no > 0 {
+            compiler.emit_bytes(&[Opcode::Deepset(deepset_no)]);
+            deepset_no -= 1;
+        }
+
+        compiler.emit_bytes(&[Opcode::Ret]);
+    }
+}
+
+impl Codegen for IfStatement {
+    fn codegen(&self, compiler: &mut Compiler) {
+        self.condition.codegen(compiler);
+
+        let jz_idx = compiler.emit_bytes(&[Opcode::Jz(0xFFFF)]);
+        let start = compiler.bytecode.len();
+        self.if_branch.codegen(compiler);
+        let if_branch_size = compiler.bytecode.len() - start;
+        compiler.bytecode[jz_idx] = Opcode::Jz(if_branch_size as i64);
+
+        let else_idx = compiler.emit_bytes(&[Opcode::Jmp(0xFFFF)]);
+        let start_else = compiler.bytecode.len();
+        self.else_branch.codegen(compiler);
+        let else_branch_size = compiler.bytecode.len() - start_else;
+        compiler.bytecode[else_idx] = Opcode::Jmp(else_branch_size as i64);
+    }
+}
+
+impl Codegen for BlockStatement {
+    fn codegen(&self, compiler: &mut Compiler) {
+        for statement in &self.body {
+            statement.codegen(compiler);
         }
     }
 }
