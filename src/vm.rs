@@ -77,8 +77,6 @@ impl std::cmp::PartialOrd for Object {
 
 fn adjust_idx(frame_ptrs: &[usize], idx: usize, current_fp: usize) -> isize {
     let fp = frame_ptrs[current_fp - 1];
-    // println!("fp_stack is: {:?}", fp_stack);
-    // println!("self.fp_count is: {}", self.fp_count);
     let adjustment = if current_fp == 0 { -1 } else { 0 };
     fp as isize + idx as isize + adjustment
 }
