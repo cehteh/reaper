@@ -34,12 +34,7 @@ impl Compiler {
     }
 
     fn resolve_local(&self, name: String) -> Option<usize> {
-        for (idx, local) in self.locals.iter().enumerate() {
-            if *local == name {
-                return Some(idx);
-            }
-        }
-        None
+        self.locals.iter().position(|local| *local == name)
     }
 }
 
@@ -177,10 +172,13 @@ impl Codegen for CallExpression {
     fn codegen(&self, compiler: &mut Compiler) {
         let ip_idx = compiler.emit_bytes(&[Opcode::Ip(0xFFFF)]);
         let start = compiler.bytecode.len();
+
         for argument in &self.arguments {
             argument.codegen(compiler);
         }
+
         compiler.emit_bytes(&[Opcode::IncFpcount]);
+
         let jmp_addr = compiler.functions.get(&self.variable).unwrap();
         compiler.emit_bytes(&[Opcode::DirectJmp(*jmp_addr)]);
         compiler.bytecode[ip_idx] = Opcode::Ip(compiler.bytecode.len() - start);
@@ -191,6 +189,7 @@ impl Codegen for BinaryExpression {
     fn codegen(&self, compiler: &mut Compiler) {
         self.lhs.codegen(compiler);
         self.rhs.codegen(compiler);
+
         match self.kind {
             BinaryExpressionKind::Add => {
                 compiler.emit_bytes(&[Opcode::Add]);
