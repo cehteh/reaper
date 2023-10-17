@@ -1,11 +1,11 @@
-mod tokenizer;
-mod parser;
 mod compiler;
+mod parser;
+mod tokenizer;
 mod vm;
 
-use crate::tokenizer::Tokenizer;
-use crate::parser::Parser;
 use crate::compiler::Compiler;
+use crate::parser::Parser;
+use crate::tokenizer::Tokenizer;
 use crate::vm::VM;
 
 fn main() {

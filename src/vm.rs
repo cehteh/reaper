@@ -10,44 +10,44 @@ enum Object {
 
 impl std::ops::Add for Object {
     type Output = Object;
-    
+
     fn add(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
             (Object::Number(a), Object::Number(b)) => Object::Number(a + b),
-            _ => unimplemented!()
+            _ => unimplemented!(),
         }
     }
 }
 
 impl std::ops::Sub for Object {
     type Output = Object;
-    
+
     fn sub(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
             (Object::Number(a), Object::Number(b)) => Object::Number(a - b),
-            _ => unimplemented!()
+            _ => unimplemented!(),
         }
     }
 }
 
 impl std::ops::Mul for Object {
     type Output = Object;
-    
+
     fn mul(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
             (Object::Number(a), Object::Number(b)) => Object::Number(a * b),
-            _ => unimplemented!()
+            _ => unimplemented!(),
         }
     }
 }
 
 impl std::ops::Div for Object {
     type Output = Object;
-    
+
     fn div(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
             (Object::Number(a), Object::Number(b)) => Object::Number(a / b),
-            _ => unimplemented!()
+            _ => unimplemented!(),
         }
     }
 }
@@ -60,10 +60,10 @@ impl std::ops::Not for Object {
             Object::Bool(b) => match b {
                 true => Object::Bool(false),
                 false => Object::Bool(true),
-            }
+            },
             _ => unimplemented!(),
         }
-    }    
+    }
 }
 
 impl std::cmp::PartialOrd for Object {
@@ -76,11 +76,11 @@ impl std::cmp::PartialOrd for Object {
 }
 
 fn adjust_idx(frame_ptrs: &[usize], idx: usize, current_fp: usize) -> isize {
-    let fp = frame_ptrs[current_fp-1];
+    let fp = frame_ptrs[current_fp - 1];
     // println!("fp_stack is: {:?}", fp_stack);
     // println!("self.fp_count is: {}", self.fp_count);
     let adjustment = if current_fp == 0 { -1 } else { 0 };
-    fp as isize + idx as isize  + adjustment 
+    fp as isize + idx as isize + adjustment
 }
 
 pub struct VM {
@@ -104,7 +104,7 @@ impl VM {
         loop {
             // println!("stack before current instruction: {:?}", self.stack);
             // println!("current instruction: {:?}", bytecode[self.ip as usize]);
-    
+
             match bytecode[self.ip as usize] {
                 Opcode::Const(n) => {
                     self.stack.push(Object::Number(n));
@@ -161,13 +161,13 @@ impl VM {
                             false => {
                                 self.ip += offset;
                             }
-                        }
+                        },
                         _ => unimplemented!(),
                     }
                 }
                 Opcode::Ip(offset) => {
                     self.frame_ptrs.push(self.stack.len());
-                    self.stack.push(Object::Ptr(self.ip+offset as i64));
+                    self.stack.push(Object::Ptr(self.ip + offset as i64));
                 }
                 Opcode::DirectJmp(jmp_addr) => {
                     self.ip = jmp_addr as i64;
@@ -186,11 +186,15 @@ impl VM {
                     }
                 }
                 Opcode::Deepget(idx) => {
-                    let item = self.stack.get(adjust_idx(&self.frame_ptrs, idx, self.current_fp) as usize).unwrap();
+                    let item = self
+                        .stack
+                        .get(adjust_idx(&self.frame_ptrs, idx, self.current_fp) as usize)
+                        .unwrap();
                     self.stack.push(item.clone());
                 }
                 Opcode::Deepset(idx) => {
-                    self.stack[adjust_idx(&self.frame_ptrs, idx, self.current_fp) as usize] = self.stack.pop().unwrap();
+                    self.stack[adjust_idx(&self.frame_ptrs, idx, self.current_fp) as usize] =
+                        self.stack.pop().unwrap();
                 }
                 Opcode::IncFpcount => {
                     self.current_fp += 1;
@@ -199,13 +203,12 @@ impl VM {
                     self.stack.pop();
                 }
             }
-    
+
             self.ip += 1;
-        
+
             if self.ip as usize == bytecode.len() {
                 break;
             }
-    
-        }   
+        }
     }
 }

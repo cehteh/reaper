@@ -1,12 +1,7 @@
 use crate::parser::{
-    Statement,
-    Expression,
-    CallExpression,
-    LiteralExpression,
-    Literal,
-    BinaryExpression,
-    BinaryExpressionKind,
-    VariableExpression, PrintStatement, FnStatement, ExpressionStatement, ReturnStatement, IfStatement, BlockStatement,
+    BinaryExpression, BinaryExpressionKind, BlockStatement, CallExpression, Expression,
+    ExpressionStatement, FnStatement, IfStatement, Literal, LiteralExpression, PrintStatement,
+    ReturnStatement, Statement, VariableExpression,
 };
 
 pub struct Compiler {
@@ -17,7 +12,7 @@ pub struct Compiler {
 
 impl Compiler {
     pub fn new() -> Compiler {
-        Compiler { 
+        Compiler {
             bytecode: Vec::new(),
             functions: std::collections::HashMap::new(),
             locals: Vec::new(),
@@ -197,11 +192,21 @@ impl Codegen for BinaryExpression {
         self.lhs.codegen(compiler);
         self.rhs.codegen(compiler);
         match self.kind {
-            BinaryExpressionKind::Add => { compiler.emit_bytes(&[Opcode::Add]); }
-            BinaryExpressionKind::Sub => { compiler.emit_bytes(&[Opcode::Sub]); }
-            BinaryExpressionKind::Mul => { compiler.emit_bytes(&[Opcode::Mul]); }
-            BinaryExpressionKind::Div => { compiler.emit_bytes(&[Opcode::Div]); }
-            BinaryExpressionKind::Less => { compiler.emit_bytes(&[Opcode::Less]); }
+            BinaryExpressionKind::Add => {
+                compiler.emit_bytes(&[Opcode::Add]);
+            }
+            BinaryExpressionKind::Sub => {
+                compiler.emit_bytes(&[Opcode::Sub]);
+            }
+            BinaryExpressionKind::Mul => {
+                compiler.emit_bytes(&[Opcode::Mul]);
+            }
+            BinaryExpressionKind::Div => {
+                compiler.emit_bytes(&[Opcode::Div]);
+            }
+            BinaryExpressionKind::Less => {
+                compiler.emit_bytes(&[Opcode::Less]);
+            }
         }
     }
 }
@@ -219,7 +224,7 @@ impl Codegen for LiteralExpression {
                 false => {
                     compiler.emit_bytes(&[Opcode::False]);
                 }
-            }
+            },
             Literal::Null => {
                 compiler.emit_bytes(&[Opcode::Null]);
             }
@@ -230,6 +235,6 @@ impl Codegen for LiteralExpression {
 impl Codegen for VariableExpression {
     fn codegen(&self, compiler: &mut Compiler) {
         let idx = compiler.resolve_local(self.value.clone()).unwrap();
-        compiler.emit_bytes(&[Opcode::Deepget(idx+1)]);
+        compiler.emit_bytes(&[Opcode::Deepget(idx + 1)]);
     }
 }

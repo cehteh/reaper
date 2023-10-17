@@ -1,5 +1,5 @@
-use std::collections::VecDeque;
 use crate::tokenizer::{Token, TokenKind};
+use std::collections::VecDeque;
 
 #[derive(Debug)]
 pub enum Expression {
@@ -88,7 +88,6 @@ pub struct IfStatement {
     pub else_branch: Box<Statement>,
 }
 
-
 #[derive(Debug)]
 pub struct BlockStatement {
     pub body: Vec<Statement>,
@@ -153,7 +152,7 @@ impl Parser {
             self.parse_expression_statement()
         }
     }
-    
+
     fn parse_return_statement(&mut self) -> Statement {
         let expression = self.parse_expression();
         self.consume(TokenKind::Semicolon);
@@ -179,7 +178,11 @@ impl Parser {
         } else {
             else_branch = Statement::Dummy;
         }
-        Statement::If(IfStatement { condition, if_branch: Box::new(if_branch), else_branch: Box::new(else_branch) })
+        Statement::If(IfStatement {
+            condition,
+            if_branch: Box::new(if_branch),
+            else_branch: Box::new(else_branch),
+        })
     }
 
     fn parse_expression_statement(&mut self) -> Statement {
@@ -306,7 +309,10 @@ impl Parser {
                 Expression::Variable(v) => v.value,
                 _ => unimplemented!(),
             };
-            expr = Expression::Call(CallExpression { variable: name, arguments });
+            expr = Expression::Call(CallExpression {
+                variable: name,
+                arguments,
+            });
         }
         expr
     }
@@ -314,7 +320,9 @@ impl Parser {
     fn primary(&mut self) -> Expression {
         if self.is_next(&[TokenKind::Number]) {
             let n = self.previous.clone().unwrap().value.parse().unwrap();
-            Expression::Literal(LiteralExpression { value: Literal::Num(n) })
+            Expression::Literal(LiteralExpression {
+                value: Literal::Num(n),
+            })
         } else if self.is_next(&[TokenKind::Identifier]) {
             let var = self.previous.clone().unwrap().value;
             Expression::Variable(VariableExpression { value: var })

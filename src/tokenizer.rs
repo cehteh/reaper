@@ -30,7 +30,10 @@ pub struct Token {
 
 impl Token {
     fn new(kind: TokenKind, value: &str) -> Token {
-        Token { kind, value: value.to_string() }
+        Token {
+            kind,
+            value: value.to_string(),
+        }
     }
 }
 
