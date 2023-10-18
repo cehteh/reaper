@@ -49,16 +49,14 @@ pub enum Opcode {
     Null,
     Not,
     False,
-    Jmp(i64),
-    DirectJmp(usize),
-    Jz(i64),
-    Ip(usize),
-    Ret,
+    DirectJmp(isize),
+    Jmp(isize),
+    Jz(isize),
+    Ip,
+    Ret(usize),
     Less,
     Deepget(usize),
     Deepset(usize),
-    IncFpcount,
-    Pop,
 }
 
 trait Codegen {
@@ -101,10 +99,10 @@ impl Codegen for FnStatement {
             statement.codegen(compiler);
         }
 
-        compiler.emit_bytes(&[Opcode::Null, Opcode::Ret]);
+        compiler.emit_bytes(&[Opcode::Null, Opcode::Ret(compiler.locals.len())]);
 
         let fn_size = compiler.bytecode.len() - start;
-        compiler.bytecode[jmp_idx] = Opcode::Jmp(fn_size as i64);
+        compiler.bytecode[jmp_idx] = Opcode::Jmp(fn_size as isize);
     }
 }
 
@@ -120,14 +118,7 @@ impl Codegen for ExpressionStatement {
 impl Codegen for ReturnStatement {
     fn codegen(&self, compiler: &mut Compiler) {
         self.expression.codegen(compiler);
-
-        let mut deepset_no = compiler.locals.len();
-        while deepset_no > 0 {
-            compiler.emit_bytes(&[Opcode::Deepset(deepset_no)]);
-            deepset_no -= 1;
-        }
-
-        compiler.emit_bytes(&[Opcode::Ret]);
+        compiler.emit_bytes(&[Opcode::Ret(compiler.locals.len())]);
     }
 }
 
@@ -139,13 +130,13 @@ impl Codegen for IfStatement {
         let start = compiler.bytecode.len();
         self.if_branch.codegen(compiler);
         let if_branch_size = compiler.bytecode.len() - start;
-        compiler.bytecode[jz_idx] = Opcode::Jz(if_branch_size as i64);
+        compiler.bytecode[jz_idx] = Opcode::Jz(if_branch_size as isize);
 
         let else_idx = compiler.emit_bytes(&[Opcode::Jmp(0xFFFF)]);
         let start_else = compiler.bytecode.len();
         self.else_branch.codegen(compiler);
         let else_branch_size = compiler.bytecode.len() - start_else;
-        compiler.bytecode[else_idx] = Opcode::Jmp(else_branch_size as i64);
+        compiler.bytecode[else_idx] = Opcode::Jmp(else_branch_size as isize);
     }
 }
 
@@ -170,18 +161,15 @@ impl Codegen for Expression {
 
 impl Codegen for CallExpression {
     fn codegen(&self, compiler: &mut Compiler) {
-        let ip_idx = compiler.emit_bytes(&[Opcode::Ip(0xFFFF)]);
-        let start = compiler.bytecode.len();
-
-        for argument in &self.arguments {
+        for argument in self.arguments.iter().rev() {
             argument.codegen(compiler);
         }
 
-        compiler.emit_bytes(&[Opcode::IncFpcount]);
+        compiler.emit_bytes(&[Opcode::Ip]);
 
         let jmp_addr = compiler.functions.get(&self.variable).unwrap();
-        compiler.emit_bytes(&[Opcode::DirectJmp(*jmp_addr)]);
-        compiler.bytecode[ip_idx] = Opcode::Ip(compiler.bytecode.len() - start);
+        // let jmp_dist = compiler.bytecode.len() - *jmp_addr;
+        compiler.emit_bytes(&[Opcode::DirectJmp(*jmp_addr as isize)]);
     }
 }
 

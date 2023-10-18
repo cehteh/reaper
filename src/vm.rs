@@ -5,7 +5,7 @@ enum Object {
     Number(f64),
     Bool(bool),
     Null,
-    Ptr(i64),
+    BytecodePtr(isize),
 }
 
 impl std::ops::Add for Object {
@@ -75,24 +75,21 @@ impl std::cmp::PartialOrd for Object {
     }
 }
 
-fn adjust_idx(frame_ptrs: &[usize], idx: usize, current_fp: usize) -> isize {
-    let fp = frame_ptrs[current_fp - 1];
-    let adjustment = if current_fp == 0 { -1 } else { 0 };
-    fp as isize + idx as isize + adjustment
+fn adjust_idx(frame_ptrs: &[usize], idx: usize) -> usize {
+    let fp = *frame_ptrs.last().unwrap();
+    fp - idx
 }
 
 pub struct VM {
     stack: Vec<Object>,
     frame_ptrs: Vec<usize>,
-    current_fp: usize,
-    ip: i64,
+    ip: isize,
 }
 
 impl VM {
     pub fn new() -> VM {
         VM {
             stack: vec![],
-            current_fp: 0,
             frame_ptrs: vec![],
             ip: 0,
         }
@@ -163,42 +160,34 @@ impl VM {
                         _ => unimplemented!(),
                     }
                 }
-                Opcode::Ip(offset) => {
+                Opcode::DirectJmp(addr) => {
+                    self.ip = addr;
+                }
+                Opcode::Ip => {
                     self.frame_ptrs.push(self.stack.len());
-                    self.stack.push(Object::Ptr(self.ip + offset as i64));
+                    self.stack.push(Object::BytecodePtr(self.ip + 1));
                 }
-                Opcode::DirectJmp(jmp_addr) => {
-                    self.ip = jmp_addr as i64;
-                }
-                Opcode::Ret => {
+                Opcode::Ret(popcount) => {
                     let retvalue = self.stack.pop().unwrap();
                     let retaddr = self.stack.pop().unwrap();
+                    self.stack.truncate(self.stack.len() - popcount);
                     self.frame_ptrs.pop();
-                    self.current_fp -= 1;
                     self.stack.push(retvalue);
                     match retaddr {
-                        Object::Ptr(ptr) => {
+                        Object::BytecodePtr(ptr) => {
                             self.ip = ptr;
                         }
                         _ => {}
                     }
                 }
                 Opcode::Deepget(idx) => {
-                    let item = self
-                        .stack
-                        .get(adjust_idx(&self.frame_ptrs, idx, self.current_fp) as usize)
-                        .unwrap();
+                    let adjusted_idx = adjust_idx(&self.frame_ptrs, idx);
+                    let item = self.stack[adjusted_idx];
                     self.stack.push(item.clone());
                 }
                 Opcode::Deepset(idx) => {
-                    self.stack[adjust_idx(&self.frame_ptrs, idx, self.current_fp) as usize] =
-                        self.stack.pop().unwrap();
-                }
-                Opcode::IncFpcount => {
-                    self.current_fp += 1;
-                }
-                Opcode::Pop => {
-                    self.stack.pop();
+                    let adjusted_idx = adjust_idx(&self.frame_ptrs, idx);
+                    self.stack[adjusted_idx] = self.stack.pop().unwrap();
                 }
             }
 
