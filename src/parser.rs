@@ -112,7 +112,7 @@ impl Parser {
         self.tokens = tokens;
         self.advance();
         let mut statements = vec![];
-        while !self.current.is_none() {
+        while self.current.is_some() {
             statements.push(self.parse_statement());
         }
         statements
