@@ -183,7 +183,7 @@ impl VM {
                 Opcode::Deepget(idx) => {
                     let adjusted_idx = adjust_idx(&self.frame_ptrs, idx);
                     let item = self.stack[adjusted_idx];
-                    self.stack.push(item.clone());
+                    self.stack.push(item);
                 }
                 Opcode::Deepset(idx) => {
                     let adjusted_idx = adjust_idx(&self.frame_ptrs, idx);
