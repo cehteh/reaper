@@ -87,7 +87,6 @@ impl Codegen for PrintStatement {
 impl Codegen for FnStatement {
     fn codegen(&self, compiler: &mut Compiler) {
         let jmp_idx = compiler.emit_bytes(&[Opcode::Jmp(0xFFFF)]);
-        let start = compiler.bytecode.len();
 
         compiler.functions.insert(self.name.clone(), jmp_idx);
 
@@ -101,8 +100,7 @@ impl Codegen for FnStatement {
 
         compiler.emit_bytes(&[Opcode::Null, Opcode::Ret(compiler.locals.len())]);
 
-        let fn_size = compiler.bytecode.len() - start;
-        compiler.bytecode[jmp_idx] = Opcode::Jmp(fn_size as isize);
+        compiler.bytecode[jmp_idx] = Opcode::Jmp(compiler.bytecode.len() as isize - 1);
     }
 }
 
@@ -164,7 +162,7 @@ impl Codegen for CallExpression {
         compiler.emit_bytes(&[Opcode::Ip]);
 
         let jmp_addr = compiler.functions.get(&self.variable).unwrap();
-        compiler.emit_bytes(&[Opcode::DirectJmp(*jmp_addr as isize)]);
+        compiler.emit_bytes(&[Opcode::Jmp(*jmp_addr as isize)]);
     }
 }
 
