@@ -127,16 +127,12 @@ impl Codegen for IfStatement {
         self.condition.codegen(compiler);
 
         let jz_idx = compiler.emit_bytes(&[Opcode::Jz(0xFFFF)]);
-        let start = compiler.bytecode.len();
         self.if_branch.codegen(compiler);
-        let if_branch_size = compiler.bytecode.len() - start;
-        compiler.bytecode[jz_idx] = Opcode::Jz(if_branch_size as isize);
+        compiler.bytecode[jz_idx] = Opcode::Jz(compiler.bytecode.len() as isize - 1);
 
         let else_idx = compiler.emit_bytes(&[Opcode::Jmp(0xFFFF)]);
-        let start_else = compiler.bytecode.len();
         self.else_branch.codegen(compiler);
-        let else_branch_size = compiler.bytecode.len() - start_else;
-        compiler.bytecode[else_idx] = Opcode::Jmp(else_branch_size as isize);
+        compiler.bytecode[else_idx] = Opcode::Jmp(compiler.bytecode.len() as isize - 1);
     }
 }
 
@@ -168,7 +164,6 @@ impl Codegen for CallExpression {
         compiler.emit_bytes(&[Opcode::Ip]);
 
         let jmp_addr = compiler.functions.get(&self.variable).unwrap();
-        // let jmp_dist = compiler.bytecode.len() - *jmp_addr;
         compiler.emit_bytes(&[Opcode::DirectJmp(*jmp_addr as isize)]);
     }
 }

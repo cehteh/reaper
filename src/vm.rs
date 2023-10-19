@@ -145,16 +145,16 @@ impl VM {
                 Opcode::Null => {
                     self.stack.push(Object::Null);
                 }
-                Opcode::Jmp(offset) => {
-                    self.ip += offset;
+                Opcode::Jmp(addr) => {
+                    self.ip = addr;
                 }
-                Opcode::Jz(offset) => {
+                Opcode::Jz(addr) => {
                     let item = self.stack.pop().unwrap();
                     match item {
                         Object::Bool(b) => match b {
                             true => {}
                             false => {
-                                self.ip += offset;
+                                self.ip = addr;
                             }
                         },
                         _ => unimplemented!(),
