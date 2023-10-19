@@ -173,11 +173,8 @@ impl VM {
                     self.stack.truncate(self.stack.len() - popcount);
                     self.frame_ptrs.pop();
                     self.stack.push(retvalue);
-                    match retaddr {
-                        Object::BytecodePtr(ptr) => {
-                            self.ip = ptr;
-                        }
-                        _ => {}
+                    if let Object::BytecodePtr(ptr) = retaddr {
+                        self.ip = ptr;
                     }
                 }
                 Opcode::Deepget(idx) => {
