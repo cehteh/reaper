@@ -57,10 +57,7 @@ impl std::ops::Not for Object {
 
     fn not(self) -> Self::Output {
         match self {
-            Object::Bool(b) => match b {
-                true => Object::Bool(false),
-                false => Object::Bool(true),
-            },
+            Object::Bool(b) => Object::Bool(!b),
             _ => unimplemented!(),
         }
     }
@@ -75,9 +72,25 @@ impl std::cmp::PartialOrd for Object {
     }
 }
 
+impl From<bool> for Object {
+    fn from(value: bool) -> Self {
+        Object::Bool(value)
+    }
+}
+
 fn adjust_idx(frame_ptrs: &[usize], idx: usize) -> usize {
     let fp = *frame_ptrs.last().unwrap();
     fp - idx
+}
+
+macro_rules! binop {
+    ($self:tt, $op:tt) => {
+        {
+            let b = $self.stack.pop().unwrap();
+            let a = $self.stack.pop().unwrap();
+            $self.stack.push((a $op b).into());
+        }
+    };
 }
 
 pub struct VM {
@@ -110,31 +123,11 @@ impl VM {
                         println!("{:?}", o);
                     }
                 }
-                Opcode::Add => {
-                    let b = self.stack.pop().unwrap();
-                    let a = self.stack.pop().unwrap();
-                    self.stack.push(a + b);
-                }
-                Opcode::Sub => {
-                    let b = self.stack.pop().unwrap();
-                    let a = self.stack.pop().unwrap();
-                    self.stack.push(a - b);
-                }
-                Opcode::Mul => {
-                    let b = self.stack.pop().unwrap();
-                    let a = self.stack.pop().unwrap();
-                    self.stack.push(a * b);
-                }
-                Opcode::Div => {
-                    let b = self.stack.pop().unwrap();
-                    let a = self.stack.pop().unwrap();
-                    self.stack.push(a / b);
-                }
-                Opcode::Less => {
-                    let b = self.stack.pop().unwrap();
-                    let a = self.stack.pop().unwrap();
-                    self.stack.push(Object::Bool(a < b));
-                }
+                Opcode::Add => binop!(self, +),
+                Opcode::Sub => binop!(self, -),
+                Opcode::Mul => binop!(self, *),
+                Opcode::Div => binop!(self, /),
+                Opcode::Less => binop!(self, <),
                 Opcode::False => {
                     self.stack.push(Object::Bool(false));
                 }
@@ -159,9 +152,6 @@ impl VM {
                         },
                         _ => unimplemented!(),
                     }
-                }
-                Opcode::DirectJmp(addr) => {
-                    self.ip = addr;
                 }
                 Opcode::Ip => {
                     self.frame_ptrs.push(self.stack.len());

@@ -49,7 +49,6 @@ pub enum Opcode {
     Null,
     Not,
     False,
-    DirectJmp(isize),
     Jmp(isize),
     Jz(isize),
     Ip,
