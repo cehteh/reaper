@@ -1,0 +1,8 @@
+fn main() {
+    x = 3;
+    y = 6;
+    print y;
+    return x;
+}
+
+print main();

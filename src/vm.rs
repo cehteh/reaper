@@ -83,6 +83,14 @@ fn adjust_idx(frame_ptrs: &[usize], idx: usize) -> usize {
     fp - idx
 }
 
+fn adjust_idx_reverse(frame_ptrs: &[usize], idx: usize) -> usize {
+    let (fp, idx) = match frame_ptrs.last() {
+        Some(&ptr) => (ptr, idx),
+        None => (0, idx-1),
+    };
+    fp + idx
+}
+
 macro_rules! binop {
     ($self:tt, $op:tt) => {
         {
@@ -110,8 +118,7 @@ impl VM {
 
     pub fn run(&mut self, bytecode: &[Opcode]) {
         loop {
-            // println!("stack before current instruction: {:?}", self.stack);
-            // println!("current instruction: {:?}", bytecode[self.ip as usize]);
+            println!("current instruction: {:?}", bytecode[self.ip as usize]);
 
             match bytecode[self.ip as usize] {
                 Opcode::Const(n) => {
@@ -120,7 +127,7 @@ impl VM {
                 Opcode::Print => {
                     let obj = self.stack.pop();
                     if let Some(o) = obj {
-                        println!("{:?}", o);
+                        println!("dbg: {:?}", o);
                     }
                 }
                 Opcode::Add => binop!(self, +),
@@ -157,10 +164,11 @@ impl VM {
                     self.frame_ptrs.push(self.stack.len());
                     self.stack.push(Object::BytecodePtr(self.ip + 1));
                 }
-                Opcode::Ret(popcount) => {
+                Opcode::Ret(before, after) => {
                     let retvalue = self.stack.pop().unwrap();
+                    self.stack.truncate(self.stack.len() - after);
                     let retaddr = self.stack.pop().unwrap();
-                    self.stack.truncate(self.stack.len() - popcount);
+                    self.stack.truncate(self.stack.len() - before);
                     self.frame_ptrs.pop();
                     self.stack.push(retvalue);
                     if let Object::BytecodePtr(ptr) = retaddr {
@@ -172,11 +180,25 @@ impl VM {
                     let item = self.stack[adjusted_idx];
                     self.stack.push(item);
                 }
+                Opcode::DeepgetReverse(idx) => {
+                    let adjusted_idx = adjust_idx_reverse(&self.frame_ptrs, idx);
+                    let item = self.stack[adjusted_idx];
+                    self.stack.push(item);
+                }
                 Opcode::Deepset(idx) => {
                     let adjusted_idx = adjust_idx(&self.frame_ptrs, idx);
                     self.stack[adjusted_idx] = self.stack.pop().unwrap();
                 }
+                Opcode::DeepsetReverse(idx) => {
+                    let adjusted_idx = adjust_idx_reverse(&self.frame_ptrs, idx);
+                    self.stack[adjusted_idx] = self.stack.pop().unwrap();
+                }
+                Opcode::Pop => {
+                    self.stack.pop();
+                }
             }
+
+            println!("stack: {:?}", self.stack);
 
             self.ip += 1;
 

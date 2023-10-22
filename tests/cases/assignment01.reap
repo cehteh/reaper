@@ -1,0 +1,14 @@
+fn fib(a, b, c, d, e) {
+    a = b;
+    print a;
+    b = c;
+    print b;
+    c = d;
+    print c;
+    d = e;
+    print d;
+    e = 20;
+    print e;
+}
+        
+print fib(1, 2, 3, 4, 5);

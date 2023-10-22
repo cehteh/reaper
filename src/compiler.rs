@@ -1,12 +1,13 @@
 use crate::parser::{
-    BinaryExpression, BinaryExpressionKind, BlockStatement, CallExpression, Expression,
-    ExpressionStatement, FnStatement, IfStatement, Literal, LiteralExpression, PrintStatement,
-    ReturnStatement, Statement, VariableExpression,
+    AssignExpression, BinaryExpression, BinaryExpressionKind, BlockStatement, CallExpression,
+    Expression, ExpressionStatement, FnStatement, IfStatement, Literal, LiteralExpression,
+    PrintStatement, ReturnStatement, Statement, VariableExpression,
 };
 
 pub struct Compiler {
     bytecode: Vec<Opcode>,
     functions: std::collections::HashMap<String, usize>,
+    arguments: Vec<String>,
     locals: Vec<String>,
 }
 
@@ -15,6 +16,7 @@ impl Compiler {
         Compiler {
             bytecode: Vec::new(),
             functions: std::collections::HashMap::new(),
+            arguments: Vec::new(),
             locals: Vec::new(),
         }
     }
@@ -36,6 +38,10 @@ impl Compiler {
     fn resolve_local(&self, name: String) -> Option<usize> {
         self.locals.iter().position(|local| *local == name)
     }
+
+    fn resolve_arg(&self, name: String) -> Option<usize> {
+        self.arguments.iter().position(|arg| *arg == name)
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -52,10 +58,13 @@ pub enum Opcode {
     Jmp(isize),
     Jz(isize),
     Ip,
-    Ret(usize),
+    Ret(usize, usize),
     Less,
     Deepget(usize),
+    DeepgetReverse(usize),
     Deepset(usize),
+    DeepsetReverse(usize),
+    Pop,
 }
 
 trait Codegen {
@@ -90,23 +99,30 @@ impl Codegen for FnStatement {
         compiler.functions.insert(self.name.clone(), jmp_idx);
 
         for argument in &self.arguments {
-            compiler.locals.push(argument.clone());
+            compiler.arguments.push(argument.clone());
         }
 
         for statement in &self.body {
             statement.codegen(compiler);
         }
 
-        compiler.emit_bytes(&[Opcode::Null, Opcode::Ret(compiler.locals.len())]);
+        compiler.emit_bytes(&[Opcode::Null, Opcode::Ret(compiler.arguments.len(), compiler.locals.len())]);
 
         compiler.bytecode[jmp_idx] = Opcode::Jmp(compiler.bytecode.len() as isize - 1);
+
+        compiler.arguments.clear();
+        compiler.locals.clear();
     }
 }
 
 impl Codegen for ExpressionStatement {
     fn codegen(&self, compiler: &mut Compiler) {
         match &self.expression {
-            Expression::Call(call_expr) => call_expr.codegen(compiler),
+            Expression::Call(call_expr) => {
+                call_expr.codegen(compiler);
+                compiler.emit_bytes(&[Opcode::Pop]);
+            }
+            Expression::Assign(assign_expr) => assign_expr.codegen(compiler),
             _ => unimplemented!(),
         }
     }
@@ -115,7 +131,9 @@ impl Codegen for ExpressionStatement {
 impl Codegen for ReturnStatement {
     fn codegen(&self, compiler: &mut Compiler) {
         self.expression.codegen(compiler);
-        compiler.emit_bytes(&[Opcode::Ret(compiler.locals.len())]);
+        compiler.emit_bytes(&[Opcode::Ret(
+            compiler.arguments.len(), compiler.locals.len(),
+        )]);
     }
 }
 
@@ -148,6 +166,33 @@ impl Codegen for Expression {
             Expression::Literal(literal) => literal.codegen(compiler),
             Expression::Variable(variable) => variable.codegen(compiler),
             Expression::Call(call) => call.codegen(compiler),
+            Expression::Assign(assignment) => assignment.codegen(compiler),
+        }
+    }
+}
+
+impl Codegen for AssignExpression {
+    fn codegen(&self, compiler: &mut Compiler) {
+        let variable_name = match &*self.lhs {
+            Expression::Variable(variable) => &variable.value,
+            _ => unimplemented!(),
+        };
+        self.rhs.codegen(compiler);
+
+        let arg = compiler.resolve_arg(variable_name.clone());
+        let local = compiler.resolve_local(variable_name.clone());
+
+        match (arg, local) {
+            (Some(arg_idx), None) => {
+                compiler.emit_bytes(&[Opcode::Deepset(arg_idx + 1)]);
+            }
+            (None, Some(local_idx)) => {
+                compiler.emit_bytes(&[Opcode::DeepsetReverse(local_idx + 1)]);
+            }
+            (Some(arg), Some(local)) => {}
+            (None, None) => {
+                compiler.locals.push(variable_name.clone());
+            }
         }
     }
 }
@@ -213,7 +258,18 @@ impl Codegen for LiteralExpression {
 
 impl Codegen for VariableExpression {
     fn codegen(&self, compiler: &mut Compiler) {
-        let idx = compiler.resolve_local(self.value.clone()).unwrap();
-        compiler.emit_bytes(&[Opcode::Deepget(idx + 1)]);
+        let arg = compiler.resolve_arg(self.value.clone());
+        let local = compiler.resolve_local(self.value.clone());
+
+        match (arg, local) {
+            (Some(arg_idx), None) => {
+                compiler.emit_bytes(&[Opcode::Deepget(arg_idx + 1)]);
+            }
+            (None, Some(local_idx)) => {
+                compiler.emit_bytes(&[Opcode::DeepgetReverse(local_idx + 1)]);
+            }
+            (Some(arg), Some(local)) => {}
+            (None, None) => {}
+        }
     }
 }

@@ -20,6 +20,7 @@ pub enum TokenKind {
     Semicolon,
     Less,
     Return,
+    Equal,
 }
 
 #[derive(Debug, Clone)]
@@ -48,7 +49,7 @@ impl Iterator for Tokenizer<'_> {
     fn next(&mut self) -> Option<Self::Item> {
         let re_keyword = r"?P<keyword>print|fn|if|else|return";
         let re_identifier = r"?P<identifier>[a-zA-Z_][a-zA-Z0-9_]*";
-        let re_individual = r"?P<individual>[-+*/(){};,<]";
+        let re_individual = r"?P<individual>[-+*/(){};,<=]";
         let re_number = r"?P<number>[-+]?\d+(\.\d+)?";
 
         let r = Regex::new(
@@ -89,6 +90,7 @@ impl Iterator for Tokenizer<'_> {
                         ";" => Token::new(TokenKind::Semicolon, ";"),
                         "," => Token::new(TokenKind::Comma, ","),
                         "<" => Token::new(TokenKind::Less, ","),
+                        "=" => Token::new(TokenKind::Equal, ","),
                         _ => unreachable!(),
                     }
                 } else if let Some(m) = captures.name("number") {

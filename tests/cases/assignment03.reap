@@ -1,0 +1,12 @@
+fn main(a, b, c) {
+    x = 3;
+    c = c * 2;
+    z = 69;
+    print z;
+    print a * 3;
+    print b * 6;
+    print c / 3;
+    return a;
+}
+
+print main(1, 2, 3);

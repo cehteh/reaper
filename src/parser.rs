@@ -7,6 +7,7 @@ pub enum Expression {
     Variable(VariableExpression),
     Binary(BinaryExpression),
     Call(CallExpression),
+    Assign(AssignExpression),
 }
 
 #[derive(Debug)]
@@ -46,6 +47,12 @@ pub enum BinaryExpressionKind {
 pub struct CallExpression {
     pub variable: String,
     pub arguments: Vec<Expression>,
+}
+
+#[derive(Debug)]
+pub struct AssignExpression {
+    pub lhs: Box<Expression>,
+    pub rhs: Box<Expression>,
 }
 
 #[derive(Debug)]
@@ -230,7 +237,18 @@ impl Parser {
     }
 
     fn parse_expression(&mut self) -> Expression {
-        self.relational()
+        self.assignment()
+    }
+
+    fn assignment(&mut self) -> Expression {
+        let mut result = self.relational();
+        while self.is_next(&[TokenKind::Equal]) {
+            result = Expression::Assign(AssignExpression {
+                lhs: result.into(),
+                rhs: self.relational().into(),
+            })
+        }
+        result
     }
 
     fn relational(&mut self) -> Expression {
