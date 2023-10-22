@@ -124,7 +124,9 @@ impl VM {
 
     pub fn run(&mut self, bytecode: &[Opcode]) {
         loop {
-            println!("current instruction: {:?}", bytecode[self.ip as usize]);
+            if cfg!(debug_assertions) {
+                println!("current instruction: {:?}", bytecode[self.ip as usize]);
+            }
 
             match bytecode[self.ip as usize] {
                 Opcode::Const(n) => {
@@ -133,7 +135,10 @@ impl VM {
                 Opcode::Print => {
                     let obj = self.stack.pop();
                     if let Some(o) = obj {
-                        println!("dbg: {:?}", o);
+                        if cfg!(test) {
+                            print!("dbg: ");
+                        }
+                        println!("{:?}", o);
                     }
                 }
                 Opcode::Add => binop!(self, +),
@@ -204,7 +209,9 @@ impl VM {
                 }
             }
 
-            println!("stack: {:?}", self.stack);
+            if cfg!(debug_assertions) {
+                println!("stack: {:?}", self.stack);
+            }
 
             self.ip += 1;
 
