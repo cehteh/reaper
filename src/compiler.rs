@@ -106,7 +106,10 @@ impl Codegen for FnStatement {
             statement.codegen(compiler);
         }
 
-        compiler.emit_bytes(&[Opcode::Null, Opcode::Ret(compiler.arguments.len(), compiler.locals.len())]);
+        compiler.emit_bytes(&[
+            Opcode::Null,
+            Opcode::Ret(compiler.arguments.len(), compiler.locals.len()),
+        ]);
 
         compiler.bytecode[jmp_idx] = Opcode::Jmp(compiler.bytecode.len() as isize - 1);
 
@@ -131,9 +134,7 @@ impl Codegen for ExpressionStatement {
 impl Codegen for ReturnStatement {
     fn codegen(&self, compiler: &mut Compiler) {
         self.expression.codegen(compiler);
-        compiler.emit_bytes(&[Opcode::Ret(
-            compiler.arguments.len(), compiler.locals.len(),
-        )]);
+        compiler.emit_bytes(&[Opcode::Ret(compiler.arguments.len(), compiler.locals.len())]);
     }
 }
 

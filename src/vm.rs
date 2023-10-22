@@ -86,7 +86,7 @@ fn adjust_idx(frame_ptrs: &[usize], idx: usize) -> usize {
 fn adjust_idx_reverse(frame_ptrs: &[usize], idx: usize) -> usize {
     let (fp, idx) = match frame_ptrs.last() {
         Some(&ptr) => (ptr, idx),
-        None => (0, idx-1),
+        None => (0, idx - 1),
     };
     fp + idx
 }

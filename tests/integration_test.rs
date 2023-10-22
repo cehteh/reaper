@@ -64,9 +64,15 @@ fn fetch_output(path: &str) -> (VecDeque<String>, VecDeque<String>) {
 #[test]
 fn test_code_fragments() {
     let pairs = [
-        ("./tests/cases/assignment01.reap", object_vec![2.0, 3.0, 4.0, 5.0, 20.0, Object::Null]),
+        (
+            "./tests/cases/assignment01.reap",
+            object_vec![2.0, 3.0, 4.0, 5.0, 20.0, Object::Null],
+        ),
         ("./tests/cases/assignment02.reap", object_vec![6.0, 3.0]),
-        ("./tests/cases/assignment03.reap", object_vec![69.0, 3.0, 12.0, 2.0, 1.0]),
+        (
+            "./tests/cases/assignment03.reap",
+            object_vec![69.0, 3.0, 12.0, 2.0, 1.0],
+        ),
         ("./tests/cases/assignment04.reap", object_vec![10.0]),
         ("./tests/cases/fib20.reap", object_vec![6765.0]),
     ];
@@ -76,6 +82,6 @@ fn test_code_fragments() {
         for e in expected {
             assert!(filtered.pop_front().unwrap() == format!("dbg: {:?}", e));
         }
-        assert!(stdout.back().unwrap() == "stack: []");   
+        assert!(stdout.back().unwrap() == "stack: []");
     }
 }
