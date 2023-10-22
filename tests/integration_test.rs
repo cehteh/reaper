@@ -62,52 +62,20 @@ fn fetch_output(path: &str) -> (VecDeque<String>, VecDeque<String>) {
 }
 
 #[test]
-fn test_assignment01() {
-    let (stdout, mut filtered) = fetch_output("./tests/cases/assignment01.reap");
-    let expected = object_vec![2.0, 3.0, 4.0, 5.0, 20.0, Object::Null];
-    for e in expected {
-        assert!(filtered.pop_front().unwrap() == format!("dbg: {:?}", e));
+fn test_code_fragments() {
+    let pairs = [
+        ("./tests/cases/assignment01.reap", object_vec![2.0, 3.0, 4.0, 5.0, 20.0, Object::Null]),
+        ("./tests/cases/assignment02.reap", object_vec![6.0, 3.0]),
+        ("./tests/cases/assignment03.reap", object_vec![69.0, 3.0, 12.0, 2.0, 1.0]),
+        ("./tests/cases/assignment04.reap", object_vec![10.0]),
+        ("./tests/cases/fib20.reap", object_vec![6765.0]),
+    ];
+    for (path, output) in pairs {
+        let (stdout, mut filtered) = fetch_output(path);
+        let expected = output;
+        for e in expected {
+            assert!(filtered.pop_front().unwrap() == format!("dbg: {:?}", e));
+        }
+        assert!(stdout.back().unwrap() == "stack: []");   
     }
-    assert!(stdout.back().unwrap() == "stack: []");
-}
-
-#[test]
-fn test_assignment02() {
-    let (stdout, mut filtered) = fetch_output("./tests/cases/assignment02.reap");
-    let expected = object_vec![6.0, 3.0];
-    for e in expected {
-        assert!(filtered.pop_front().unwrap() == format!("dbg: {:?}", e));
-    }
-    assert!(stdout.back().unwrap() == "stack: []");
-}
-
-#[test]
-fn test_assignment03() {
-    let (stdout, mut filtered) = fetch_output("./tests/cases/assignment03.reap");
-    let expected = object_vec![69.0, 3.0, 12.0, 2.0, 1.0];
-    for e in expected {
-        assert!(filtered.pop_front().unwrap() == format!("dbg: {:?}", e));
-    }
-    assert!(stdout.back().unwrap() == "stack: []");
-}
-
-
-#[test]
-fn test_assignment04() {
-    let (stdout, mut filtered) = fetch_output("./tests/cases/assignment04.reap");
-    let expected = object_vec![10.0];
-    for e in expected {
-        assert!(filtered.pop_front().unwrap() == format!("dbg: {:?}", e));
-    }
-    assert!(stdout.back().unwrap() == "stack: []");
-}
-
-#[test]
-fn test_fib20() {
-    let (stdout, mut filtered) = fetch_output("./tests/cases/fib20.reap");
-    let expected = object_vec![6765.0];
-    for e in expected {
-        assert!(filtered.pop_front().unwrap() == format!("dbg: {:?}", e));
-    }
-    assert!(stdout.back().unwrap() == "stack: []");
 }
