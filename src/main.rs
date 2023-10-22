@@ -4,6 +4,9 @@ mod tokenizer;
 mod util;
 mod vm;
 
+#[cfg(test)]
+mod integration_tests;
+
 use crate::compiler::Compiler;
 use crate::parser::Parser;
 use crate::tokenizer::Tokenizer;

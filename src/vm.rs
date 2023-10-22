@@ -1,7 +1,7 @@
 use crate::compiler::Opcode;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-enum Object {
+pub enum Object {
     Number(f64),
     Bool(bool),
     Null,
@@ -75,6 +75,12 @@ impl std::cmp::PartialOrd for Object {
 impl From<bool> for Object {
     fn from(value: bool) -> Self {
         Object::Bool(value)
+    }
+}
+
+impl From<f64> for Object {
+    fn from(value: f64) -> Self {
+        Object::Number(value)
     }
 }
 

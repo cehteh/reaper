@@ -1,3 +1,4 @@
+use crate::vm::Object;
 use assert_cmd;
 use std::collections::VecDeque;
 
@@ -10,26 +11,6 @@ macro_rules! object_vec {
             )*
             v
         }
-    }
-}
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-enum Object {
-    Number(f64),
-    Bool(bool),
-    Null,
-    BytecodePtr(isize),
-}
-
-impl From<bool> for Object {
-    fn from(value: bool) -> Self {
-        Object::Bool(value)
-    }
-}
-
-impl From<f64> for Object {
-    fn from(value: f64) -> Self {
-        Object::Number(value)
     }
 }
 
@@ -65,16 +46,25 @@ fn fetch_output(path: &str) -> (VecDeque<String>, VecDeque<String>) {
 fn test_code_fragments() {
     let pairs = [
         (
-            "./tests/cases/assignment01.reap",
+            "./src/integration_tests/cases/assignment01.reap",
             object_vec![2.0, 3.0, 4.0, 5.0, 20.0, Object::Null],
         ),
-        ("./tests/cases/assignment02.reap", object_vec![6.0, 3.0]),
         (
-            "./tests/cases/assignment03.reap",
+            "./src/integration_tests/cases/assignment02.reap",
+            object_vec![6.0, 3.0],
+        ),
+        (
+            "./src/integration_tests/cases/assignment03.reap",
             object_vec![69.0, 3.0, 12.0, 2.0, 1.0],
         ),
-        ("./tests/cases/assignment04.reap", object_vec![10.0]),
-        ("./tests/cases/fib20.reap", object_vec![6765.0]),
+        (
+            "./src/integration_tests/cases/assignment04.reap",
+            object_vec![10.0],
+        ),
+        (
+            "./src/integration_tests/cases/fib20.reap",
+            object_vec![6765.0],
+        ),
     ];
     for (path, output) in pairs {
         let (stdout, mut filtered) = fetch_output(path);
