@@ -41,6 +41,7 @@ pub enum BinaryExpressionKind {
     Mul,
     Div,
     Less,
+    Equality(bool),
 }
 
 #[derive(Debug)]
@@ -75,7 +76,7 @@ pub struct PrintStatement {
 pub struct FnStatement {
     pub name: String,
     pub arguments: Vec<String>,
-    pub body: Vec<Statement>,
+    pub body: Box<Statement>,
 }
 
 #[derive(Debug)]
@@ -216,14 +217,11 @@ impl Parser {
             arguments.push(arg.value);
         }
         self.consume(TokenKind::LeftBrace);
-        let mut body = vec![];
-        while !self.is_next(&[TokenKind::RightBrace]) {
-            body.push(self.parse_statement());
-        }
+        let body = self.parse_block_statement();
         Statement::Fn(FnStatement {
             name: name.value,
             arguments,
-            body,
+            body: body.into(),
         })
     }
 
@@ -241,12 +239,25 @@ impl Parser {
     }
 
     fn assignment(&mut self) -> Expression {
-        let mut result = self.relational();
+        let mut result = self.equality();
         while self.is_next(&[TokenKind::Equal]) {
             result = Expression::Assign(AssignExpression {
                 lhs: result.into(),
-                rhs: self.relational().into(),
+                rhs: self.equality().into(),
             })
+        }
+        result
+    }
+
+    fn equality(&mut self) -> Expression {
+        let mut result = self.relational();
+        while self.is_next(&[TokenKind::DoubleEqual, TokenKind::BangEqual]) {
+            let negation = match self.previous.clone().unwrap().kind {
+                TokenKind::BangEqual => true,
+                TokenKind::DoubleEqual => false,
+                _ => unreachable!(),
+            };
+            result = Expression::Binary(BinaryExpression { kind: BinaryExpressionKind::Equality(negation), lhs: Box::new(result), rhs: Box::new(self.relational()) });
         }
         result
     }

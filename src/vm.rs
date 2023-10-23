@@ -85,11 +85,6 @@ impl From<f64> for Object {
 }
 
 fn adjust_idx(frame_ptrs: &[usize], idx: usize) -> usize {
-    let fp = *frame_ptrs.last().unwrap();
-    fp - idx
-}
-
-fn adjust_idx_reverse(frame_ptrs: &[usize], idx: usize) -> usize {
     let (fp, idx) = match frame_ptrs.last() {
         Some(&ptr) => (ptr, idx),
         None => (0, idx - 1),
@@ -135,7 +130,7 @@ impl VM {
                 Opcode::Print => {
                     let obj = self.stack.pop();
                     if let Some(o) = obj {
-                        if cfg!(test) {
+                        if cfg!(debug_assertions) {
                             print!("dbg: ");
                         }
                         println!("{:?}", o);
@@ -146,6 +141,7 @@ impl VM {
                 Opcode::Mul => binop!(self, *),
                 Opcode::Div => binop!(self, /),
                 Opcode::Less => binop!(self, <),
+                Opcode::Eq => binop!(self, ==),
                 Opcode::False => {
                     self.stack.push(Object::Bool(false));
                 }
@@ -171,17 +167,21 @@ impl VM {
                         _ => unimplemented!(),
                     }
                 }
-                Opcode::Ip => {
+                Opcode::Ip(offset) => {
                     self.frame_ptrs.push(self.stack.len());
-                    self.stack.push(Object::BytecodePtr(self.ip + 1));
+                    self.stack.push(Object::BytecodePtr(self.ip + offset as isize));
                 }
-                Opcode::Ret(before, after) => {
+                Opcode::ShiftIp(n) => {
+                    let ip = self.stack.pop().unwrap();
+                    self.stack.insert(self.stack.len() - n, ip);
+                    let len = self.frame_ptrs.len();
+                    self.frame_ptrs[len-1] = self.stack.len() - n - 1;
+                }
+                Opcode::Ret => {
                     let retvalue = self.stack.pop().unwrap();
-                    self.stack.truncate(self.stack.len() - after);
                     let retaddr = self.stack.pop().unwrap();
-                    self.stack.truncate(self.stack.len() - before);
-                    self.frame_ptrs.pop();
                     self.stack.push(retvalue);
+                    self.frame_ptrs.pop();
                     if let Object::BytecodePtr(ptr) = retaddr {
                         self.ip = ptr;
                     }
@@ -191,17 +191,8 @@ impl VM {
                     let item = self.stack[adjusted_idx];
                     self.stack.push(item);
                 }
-                Opcode::DeepgetReverse(idx) => {
-                    let adjusted_idx = adjust_idx_reverse(&self.frame_ptrs, idx);
-                    let item = self.stack[adjusted_idx];
-                    self.stack.push(item);
-                }
                 Opcode::Deepset(idx) => {
                     let adjusted_idx = adjust_idx(&self.frame_ptrs, idx);
-                    self.stack[adjusted_idx] = self.stack.pop().unwrap();
-                }
-                Opcode::DeepsetReverse(idx) => {
-                    let adjusted_idx = adjust_idx_reverse(&self.frame_ptrs, idx);
                     self.stack[adjusted_idx] = self.stack.pop().unwrap();
                 }
                 Opcode::Pop => {

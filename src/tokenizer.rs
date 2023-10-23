@@ -21,6 +21,8 @@ pub enum TokenKind {
     Less,
     Return,
     Equal,
+    BangEqual,
+    DoubleEqual,
 }
 
 #[derive(Debug, Clone)]
@@ -50,12 +52,13 @@ impl Iterator for Tokenizer<'_> {
         let re_keyword = r"?P<keyword>print|fn|if|else|return";
         let re_identifier = r"?P<identifier>[a-zA-Z_][a-zA-Z0-9_]*";
         let re_individual = r"?P<individual>[-+*/(){};,<=]";
+        let re_double = r"?P<double>==|!=";
         let re_number = r"?P<number>[-+]?\d+(\.\d+)?";
 
         let r = Regex::new(
             format!(
-                "({})|({})|({})|({})",
-                re_keyword, re_identifier, re_individual, re_number,
+                "({})|({})|({})|({})|({})",
+                re_keyword, re_identifier, re_double, re_individual, re_number,
             )
             .as_str(),
         )
@@ -76,7 +79,14 @@ impl Iterator for Tokenizer<'_> {
                 } else if let Some(m) = captures.name("identifier") {
                     self.start = m.end();
                     Token::new(TokenKind::Identifier, m.as_str())
-                } else if let Some(m) = captures.name("individual") {
+                } else if let Some(m) = captures.name("double") {
+                    self.start = m.end();
+                    match m.as_str() {
+                        "==" => Token::new(TokenKind::DoubleEqual, "=="),
+                        "!=" => Token::new(TokenKind::BangEqual, "=="),
+                        _ => unreachable!(),
+                    }
+                }  else if let Some(m) = captures.name("individual") {
                     self.start = m.end();
                     match m.as_str() {
                         "(" => Token::new(TokenKind::LeftParen, "("),

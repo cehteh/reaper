@@ -66,12 +66,12 @@ fn test_code_fragments() {
             object_vec![6765.0],
         ),
     ];
-    for (path, output) in pairs {
+    for (path, expected) in pairs {
         let (stdout, mut filtered) = fetch_output(path);
-        let expected = output;
         for e in expected {
             assert!(filtered.pop_front().unwrap() == format!("dbg: {:?}", e));
         }
         assert!(stdout.back().unwrap() == "stack: []");
+        println!("done: {}", path);
     }
 }
