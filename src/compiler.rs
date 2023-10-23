@@ -213,15 +213,15 @@ impl Codegen for CallExpression {
             argument.codegen(compiler);
         }
 
-        let ip_idx = compiler.emit_bytes(&[Opcode::Ip(0xFFFF)]);
-        let start = compiler.bytecode.len();
+        // let ip_idx = compiler.emit_bytes(&[Opcode::Ip(0xFFFF)]);
+        // let start = compiler.bytecode.len();
 
         compiler.emit_bytes(&[Opcode::ShiftIp(self.arguments.len())]);
 
         let jmp_addr = compiler.functions.get(&self.variable).unwrap();
         compiler.emit_bytes(&[Opcode::Jmp(*jmp_addr as isize)]);
 
-        compiler.bytecode[ip_idx] = Opcode::Ip(compiler.bytecode.len() - start);
+        // compiler.bytecode[ip_idx] = Opcode::Ip(compiler.bytecode.len() - start);
     }
 }
 
