@@ -167,13 +167,10 @@ impl VM {
                         _ => unimplemented!(),
                     }
                 }
-                Opcode::Ip(offset) => {
-                    self.frame_ptrs.push(self.stack.len());
-                    self.stack.push(Object::BytecodePtr(self.ip + offset as isize));
-                }
-                Opcode::ShiftIp(n) => {
+                Opcode::Invoke(n, addr) => {
                     self.frame_ptrs.push(self.stack.len() - n);
-                    self.stack.insert(self.stack.len() - n, Object::BytecodePtr(self.ip + 1));
+                    self.stack.insert(self.stack.len() - n, Object::BytecodePtr(self.ip));
+                    self.ip = addr as isize;
                 }
                 Opcode::Ret => {
                     let retvalue = self.stack.pop().unwrap();
