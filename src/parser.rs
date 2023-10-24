@@ -180,12 +180,11 @@ impl Parser {
         let condition = self.parse_expression();
         self.consume(TokenKind::RightParen);
         let if_branch = self.parse_statement();
-        let else_branch: Statement;
-        if self.is_next(&[TokenKind::Else]) {
-            else_branch = self.parse_statement();
+        let else_branch: Statement = if self.is_next(&[TokenKind::Else]) {
+            self.parse_statement()
         } else {
-            else_branch = Statement::Dummy;
-        }
+            Statement::Dummy
+        };
         Statement::If(IfStatement {
             condition,
             if_branch: Box::new(if_branch),

@@ -16,7 +16,7 @@ use std::env;
 
 fn main() -> Result<(), std::io::Error> {
     let args: Vec<String> = env::args().collect();
-    match args.iter().nth(1) {
+    match args.get(1) {
         Some(path) => {
             let src = read_file(path)?;
             let tokenizer = Tokenizer::new(&src);
