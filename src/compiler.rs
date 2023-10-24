@@ -12,6 +12,12 @@ pub struct Compiler {
     pops: [usize; 1024],
 }
 
+impl Default for Compiler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Compiler {
     pub fn new() -> Compiler {
         Compiler {

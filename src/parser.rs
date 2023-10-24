@@ -107,6 +107,12 @@ pub struct Parser {
     tokens: VecDeque<Token>,
 }
 
+impl Default for Parser {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Parser {
     pub fn new() -> Parser {
         Parser {

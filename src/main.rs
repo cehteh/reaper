@@ -11,9 +11,9 @@ fn main() -> Result<(), std::io::Error> {
         Some(path) => {
             let src = read_file(path)?;
             let tokenizer = Tokenizer::new(&src);
-            let mut parser = Parser::new();
-            let mut compiler = Compiler::new();
-            let mut vm = VM::new();
+            let mut parser = Parser::default();
+            let mut compiler = Compiler::default();
+            let mut vm = VM::default();
             let ast = parser.parse(tokenizer.into_iter().collect());
             let bytecode = compiler.compile(ast);
             vm.run(&bytecode);
