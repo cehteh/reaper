@@ -1,17 +1,8 @@
-mod compiler;
-mod parser;
-mod tokenizer;
-mod util;
-mod vm;
-
-#[cfg(test)]
-mod integration_tests;
-
-use crate::compiler::Compiler;
-use crate::parser::Parser;
-use crate::tokenizer::Tokenizer;
-use crate::util::read_file;
-use crate::vm::VM;
+use reaper::compiler::Compiler;
+use reaper::parser::Parser;
+use reaper::tokenizer::Tokenizer;
+use reaper::util::read_file;
+use reaper::vm::VM;
 use std::env;
 
 fn main() -> Result<(), std::io::Error> {

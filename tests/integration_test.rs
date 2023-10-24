@@ -1,4 +1,4 @@
-use crate::vm::Object;
+use reaper::vm::Object;
 use assert_cmd;
 use std::collections::VecDeque;
 
@@ -46,23 +46,23 @@ fn fetch_output(path: &str) -> (VecDeque<String>, VecDeque<String>) {
 fn test_code_fragments() {
     let pairs = [
         (
-            "src/integration_tests/cases/assignment01.reap",
+            "tests/cases/assignment01.reap",
             object_vec![2.0, 3.0, 4.0, 5.0, 20.0, Object::Null],
         ),
         (
-            "src/integration_tests/cases/assignment02.reap",
+            "tests/cases/assignment02.reap",
             object_vec![6.0, 3.0],
         ),
         (
-            "src/integration_tests/cases/assignment03.reap",
+            "tests/cases/assignment03.reap",
             object_vec![69.0, 3.0, 12.0, 2.0, 1.0],
         ),
         (
-            "src/integration_tests/cases/assignment04.reap",
+            "tests/cases/assignment04.reap",
             object_vec![10.0],
         ),
         (
-            "src/integration_tests/cases/fib20.reap",
+            "tests/cases/fib20.reap",
             object_vec![6765.0],
         ),
     ];
