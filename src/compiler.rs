@@ -114,10 +114,7 @@ impl Codegen for FnStatement {
 
         compiler.emit_stack_cleanup();
 
-        compiler.emit_bytes(&[
-            Opcode::Null,
-            Opcode::Ret,
-        ]);
+        compiler.emit_bytes(&[Opcode::Null, Opcode::Ret]);
 
         compiler.bytecode[jmp_idx] = Opcode::Jmp(compiler.bytecode.len() as isize - 1);
 
@@ -198,7 +195,7 @@ impl Codegen for AssignExpression {
         let local = compiler.resolve_local(variable_name.clone());
 
         if let Some(idx) = local {
-            compiler.emit_bytes(&[Opcode::Deepset(idx+1)]);
+            compiler.emit_bytes(&[Opcode::Deepset(idx + 1)]);
         } else {
             compiler.locals.push(variable_name.clone());
             compiler.pops[compiler.depth] += 1;
@@ -273,13 +270,13 @@ impl Codegen for LiteralExpression {
 impl Codegen for VariableExpression {
     fn codegen(&self, compiler: &mut Compiler) {
         let local = compiler.resolve_local(self.value.clone());
-     
+
         if let Some(idx) = local {
-            compiler.emit_bytes(&[Opcode::Deepget(idx+1)]);
+            compiler.emit_bytes(&[Opcode::Deepget(idx + 1)]);
         } else {
             compiler.locals.push(self.value.clone());
             let idx = compiler.resolve_local(self.value.clone()).unwrap();
-            compiler.emit_bytes(&[Opcode::Deepget(idx+1)]);
+            compiler.emit_bytes(&[Opcode::Deepget(idx + 1)]);
         }
     }
 }

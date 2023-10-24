@@ -256,7 +256,11 @@ impl Parser {
                 TokenKind::DoubleEqual => false,
                 _ => unreachable!(),
             };
-            result = Expression::Binary(BinaryExpression { kind: BinaryExpressionKind::Equality(negation), lhs: Box::new(result), rhs: Box::new(self.relational()) });
+            result = Expression::Binary(BinaryExpression {
+                kind: BinaryExpressionKind::Equality(negation),
+                lhs: Box::new(result),
+                rhs: Box::new(self.relational()),
+            });
         }
         result
     }

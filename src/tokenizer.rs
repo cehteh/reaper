@@ -86,7 +86,7 @@ impl Iterator for Tokenizer<'_> {
                         "!=" => Token::new(TokenKind::BangEqual, "=="),
                         _ => unreachable!(),
                     }
-                }  else if let Some(m) = captures.name("individual") {
+                } else if let Some(m) = captures.name("individual") {
                     self.start = m.end();
                     match m.as_str() {
                         "(" => Token::new(TokenKind::LeftParen, "("),

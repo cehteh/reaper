@@ -169,7 +169,8 @@ impl VM {
                 }
                 Opcode::Invoke(n, addr) => {
                     self.frame_ptrs.push(self.stack.len() - n);
-                    self.stack.insert(self.stack.len() - n, Object::BytecodePtr(self.ip));
+                    self.stack
+                        .insert(self.stack.len() - n, Object::BytecodePtr(self.ip));
                     self.ip = addr as isize;
                 }
                 Opcode::Ret => {

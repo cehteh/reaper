@@ -1,7 +1,7 @@
-pub mod tokenizer;
-pub mod parser;
 pub mod compiler;
-pub mod vm;
+pub mod parser;
+pub mod tokenizer;
 pub mod util;
+pub mod vm;
 
 pub use vm::Object;
