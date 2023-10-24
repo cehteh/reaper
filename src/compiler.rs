@@ -72,7 +72,7 @@ pub enum Opcode {
 }
 
 trait Codegen {
-    fn codegen(&self, compiler: &mut Compiler) {}
+    fn codegen(&self, _compiler: &mut Compiler) {}
 }
 
 impl Codegen for Statement {
