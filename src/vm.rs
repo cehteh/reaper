@@ -131,7 +131,7 @@ impl VM {
 
             match bytecode[self.ip as usize] {
                 Opcode::Const(n) => {
-                    self.stack.push(Object::Number(n));
+                    self.stack.push(n.into());
                 }
                 Opcode::Print => {
                     let obj = self.stack.pop();
@@ -149,7 +149,7 @@ impl VM {
                 Opcode::Less => binop!(self, <),
                 Opcode::Eq => binop!(self, ==),
                 Opcode::False => {
-                    self.stack.push(Object::Bool(false));
+                    self.stack.push(false.into());
                 }
                 Opcode::Not => {
                     let obj = self.stack.pop().unwrap();
