@@ -163,14 +163,8 @@ impl VM {
                 }
                 Opcode::Jz(addr) => {
                     let item = self.stack.pop().unwrap();
-                    match item {
-                        Object::Bool(b) => match b {
-                            true => {}
-                            false => {
-                                self.ip = addr;
-                            }
-                        },
-                        _ => unimplemented!(),
+                    if let Object::Bool(_b @ false) = item {
+                        self.ip = addr;
                     }
                 }
                 Opcode::Invoke(n, addr) => {
