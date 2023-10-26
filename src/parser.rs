@@ -400,7 +400,7 @@ impl Parser {
                 .parse()
                 .expect("Failed to parse a literal.");
             Expression::Literal(LiteralExpression {
-                value: literal.into(),
+                value: literal,
             })
         } else {
             todo!();
