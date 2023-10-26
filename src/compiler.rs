@@ -1,7 +1,7 @@
 use crate::parser::{
     AssignExpression, BinaryExpression, BinaryExpressionKind, BlockStatement, CallExpression,
     Expression, ExpressionStatement, FnStatement, IfStatement, Literal, LiteralExpression,
-    PrintStatement, ReturnStatement, Statement, VariableExpression,
+    PrintStatement, ReturnStatement, Statement, UnaryExpression, VariableExpression,
 };
 
 pub struct Compiler {
@@ -186,7 +186,15 @@ impl Codegen for Expression {
             Expression::Variable(variable) => variable.codegen(compiler),
             Expression::Call(call) => call.codegen(compiler),
             Expression::Assign(assignment) => assignment.codegen(compiler),
+            Expression::Unary(unary) => unary.codegen(compiler),
         }
+    }
+}
+
+impl Codegen for UnaryExpression {
+    fn codegen(&self, compiler: &mut Compiler) {
+        self.expr.codegen(compiler);
+        compiler.emit_bytes(&[Opcode::Not]);
     }
 }
 

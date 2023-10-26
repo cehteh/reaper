@@ -56,6 +56,7 @@ fn test_code_fragments() {
         ),
         ("tests/cases/assignment04.reap", object_vec![10.0]),
         ("tests/cases/fib20.reap", object_vec![6765.0]),
+        ("tests/cases/bool_declaration.reap", object_vec![1.0, 2.0]),
     ];
     for (path, expected) in pairs {
         let (stdout, mut filtered) = fetch_output(path);

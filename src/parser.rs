@@ -8,6 +8,7 @@ pub enum Expression {
     Binary(BinaryExpression),
     Call(CallExpression),
     Assign(AssignExpression),
+    Unary(UnaryExpression),
 }
 
 #[derive(Debug)]
@@ -54,6 +55,11 @@ pub struct CallExpression {
 pub struct AssignExpression {
     pub lhs: Box<Expression>,
     pub rhs: Box<Expression>,
+}
+
+#[derive(Debug)]
+pub struct UnaryExpression {
+    pub expr: Box<Expression>,
 }
 
 #[derive(Debug)]
@@ -311,7 +317,7 @@ impl Parser {
     }
 
     fn factor(&mut self) -> Expression {
-        let mut result = self.call();
+        let mut result = self.unary();
         while self.is_next(&[TokenKind::Star, TokenKind::Slash]) {
             let kind = match self.previous.clone() {
                 Some(token) => match token.kind {
@@ -324,10 +330,19 @@ impl Parser {
             result = Expression::Binary(BinaryExpression {
                 kind,
                 lhs: Box::new(result),
-                rhs: Box::new(self.call()),
+                rhs: Box::new(self.unary()),
             });
         }
         result
+    }
+
+    fn unary(&mut self) -> Expression {
+        if self.is_next(&[TokenKind::Bang]) {
+            let right = self.unary();
+            let result = Expression::Unary(UnaryExpression { expr: right.into() });
+            return result;
+        }
+        self.call()
     }
 
     fn call(&mut self) -> Expression {
@@ -364,9 +379,19 @@ impl Parser {
         } else if self.is_next(&[TokenKind::Identifier]) {
             let var = self.previous.clone().unwrap().value;
             Expression::Variable(VariableExpression { value: var })
+        } else if self.is_next(&[TokenKind::True, TokenKind::False]) {
+            let b = self
+                .previous
+                .clone()
+                .unwrap()
+                .value
+                .parse()
+                .expect("Failed to parse a boolean.");
+            Expression::Literal(LiteralExpression {
+                value: Literal::Bool(b),
+            })
         } else {
-            // println!("current is: {:?}", self.current.clone());
-            unimplemented!();
+            todo!();
         }
     }
 }

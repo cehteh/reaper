@@ -21,8 +21,11 @@ pub enum TokenKind {
     Less,
     Return,
     Equal,
+    Bang,
     BangEqual,
     DoubleEqual,
+    True,
+    False,
 }
 
 #[derive(Debug, Clone)]
@@ -49,9 +52,9 @@ impl Iterator for Tokenizer<'_> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let re_keyword = r"?P<keyword>print|fn|if|else|return";
+        let re_keyword = r"?P<keyword>print|fn|if|else|return|true|false";
         let re_identifier = r"?P<identifier>[a-zA-Z_][a-zA-Z0-9_]*";
-        let re_individual = r"?P<individual>[-+*/(){};,<=]";
+        let re_individual = r"?P<individual>[-+*/(){};,<=!]";
         let re_double = r"?P<double>==|!=";
         let re_number = r"?P<number>[-+]?\d+(\.\d+)?";
 
@@ -74,6 +77,8 @@ impl Iterator for Tokenizer<'_> {
                         "if" => Token::new(TokenKind::If, "if"),
                         "else" => Token::new(TokenKind::Else, "else"),
                         "return" => Token::new(TokenKind::Return, "return"),
+                        "true" => Token::new(TokenKind::True, "true"),
+                        "false" => Token::new(TokenKind::False, "false"),
                         _ => unreachable!(),
                     }
                 } else if let Some(m) = captures.name("identifier") {
@@ -101,6 +106,7 @@ impl Iterator for Tokenizer<'_> {
                         "," => Token::new(TokenKind::Comma, ","),
                         "<" => Token::new(TokenKind::Less, ","),
                         "=" => Token::new(TokenKind::Equal, ","),
+                        "!" => Token::new(TokenKind::Bang, ","),
                         _ => unreachable!(),
                     }
                 } else if let Some(m) = captures.name("number") {

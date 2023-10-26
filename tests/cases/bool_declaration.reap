@@ -1,0 +1,12 @@
+fn main() {
+    x = true;
+    y = false;
+    if (x) {
+        print 1;
+    }
+    if (!y) {
+        print 2;
+    }
+}
+
+main();
