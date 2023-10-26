@@ -74,7 +74,7 @@ pub enum Opcode {
     Deepget(usize),
     Deepset(usize),
     Pop,
-    Invoke(usize, usize),
+    Invoke(usize),
 }
 
 trait Codegen {
@@ -225,7 +225,7 @@ impl Codegen for CallExpression {
 
         let jmp_addr = compiler.functions.get(&self.variable).unwrap();
 
-        compiler.emit_bytes(&[Opcode::Invoke(self.arguments.len(), *jmp_addr)]);
+        compiler.emit_bytes(&[Opcode::Invoke(self.arguments.len()), Opcode::Jmp(*jmp_addr)]);
     }
 }
 

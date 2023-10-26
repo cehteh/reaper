@@ -178,10 +178,11 @@ impl VM {
                         self.ip = addr;
                     }
                 }
-                Opcode::Invoke(n, addr) => {
-                    self.frame_ptrs
-                        .push(InternalObject::BytecodePtr(self.ip, self.stack.len() - n));
-                    self.ip = addr;
+                Opcode::Invoke(n) => {
+                    self.frame_ptrs.push(InternalObject::BytecodePtr(
+                        self.ip + 1,
+                        self.stack.len() - n,
+                    ));
                 }
                 Opcode::Ret => {
                     let retaddr = self.frame_ptrs.pop().unwrap();
