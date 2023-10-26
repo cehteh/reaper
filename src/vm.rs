@@ -135,7 +135,7 @@ impl VM {
     }
 
     pub fn run(&mut self, bytecode: &[Opcode]) {
-        loop {
+        while self.ip != bytecode.len() {
             if cfg!(debug_assertions) {
                 println!("current instruction: {:?}", bytecode[self.ip]);
             }
@@ -205,10 +205,6 @@ impl VM {
             }
 
             self.ip += 1;
-
-            if self.ip == bytecode.len() {
-                break;
-            }
         }
     }
 }
