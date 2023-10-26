@@ -123,13 +123,13 @@ impl Default for VM {
     }
 }
 
-const STACK_MAX: usize = 1024;
+const STACK_MIN: usize = 1024;
 
 impl VM {
     pub fn new() -> VM {
         VM {
-            stack: Vec::with_capacity(STACK_MAX),
-            frame_ptrs: Vec::with_capacity(STACK_MAX),
+            stack: Vec::with_capacity(STACK_MIN),
+            frame_ptrs: Vec::with_capacity(STACK_MIN),
             ip: 0,
         }
     }
