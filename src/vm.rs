@@ -117,8 +117,8 @@ impl Default for VM {
 impl VM {
     pub fn new() -> VM {
         VM {
-            stack: vec![],
-            frame_ptrs: vec![],
+            stack: Vec::with_capacity(1024),
+            frame_ptrs: Vec::with_capacity(1024),
             ip: 0,
         }
     }
