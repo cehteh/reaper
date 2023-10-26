@@ -174,8 +174,8 @@ impl VM {
                     self.ip = addr as isize;
                 }
                 Opcode::Ret => {
-                    let retaddr = self.stack.swap_remove(self.stack.len() - 2);
                     self.frame_ptrs.pop();
+                    let retaddr = self.stack.swap_remove(self.stack.len() - 2);
                     if let Object::BytecodePtr(ptr) = retaddr {
                         self.ip = ptr;
                     }
