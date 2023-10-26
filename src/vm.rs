@@ -5,7 +5,7 @@ pub enum Object {
     Number(f64),
     Bool(bool),
     Null,
-    BytecodePtr(usize),
+    BytecodePtr(usize, usize),
 }
 
 impl std::ops::Add for Object {
@@ -87,7 +87,11 @@ impl From<f64> for Object {
 macro_rules! adjust_idx {
     ($self:tt, $index:expr) => {{
         let (fp, idx) = match $self.frame_ptrs.last() {
-            Some(&ptr) => (ptr, $index),
+            Some(&obj) => if let Object::BytecodePtr(_ptr, location) = obj {
+                (location, $index - 1)
+            } else {
+                unimplemented!()
+            }
             None => (0, $index - 1),
         };
         fp + idx
@@ -106,7 +110,7 @@ macro_rules! binop {
 
 pub struct VM {
     stack: Vec<Object>,
-    frame_ptrs: Vec<usize>,
+    frame_ptrs: Vec<Object>,
     ip: usize,
 }
 
@@ -172,15 +176,15 @@ impl VM {
                     }
                 }
                 Opcode::Invoke(n, addr) => {
-                    self.frame_ptrs.push(self.stack.len() - n);
-                    self.stack
-                        .insert(self.stack.len() - n, Object::BytecodePtr(self.ip));
+                    self.frame_ptrs.push(Object::BytecodePtr(self.ip, self.stack.len() - n));
                     self.ip = addr;
                 }
                 Opcode::Ret => {
-                    self.frame_ptrs.pop();
-                    let retaddr = self.stack.swap_remove(self.stack.len() - 2);
-                    if let Object::BytecodePtr(ptr) = retaddr {
+                    let retaddr = self.frame_ptrs.pop().unwrap();
+                    // let retaddr = self.stack.swap_remove(self.stack.len() - 2);
+                    // let (drain_start, drain_end) = (self.stack.len()-n-1, self.stack.len() - 1);                   
+                    // self.stack.drain(drain_start..drain_end);
+                    if let Object::BytecodePtr(ptr, _) = retaddr {
                         self.ip = ptr;
                     }
                 }
