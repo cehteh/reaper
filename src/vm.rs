@@ -5,7 +5,7 @@ pub enum Object {
     Number(f64),
     Bool(bool),
     Null,
-    BytecodePtr(isize),
+    BytecodePtr(usize),
 }
 
 impl std::ops::Add for Object {
@@ -84,13 +84,14 @@ impl From<f64> for Object {
     }
 }
 
-#[inline]
-fn adjust_idx(frame_ptrs: &[usize], idx: usize) -> usize {
-    let (fp, idx) = match frame_ptrs.last() {
-        Some(&ptr) => (ptr, idx),
-        None => (0, idx - 1),
-    };
-    fp + idx
+macro_rules! adjust_idx {
+    ($self:tt, $index:expr) => {{
+        let (fp, idx) = match $self.frame_ptrs.last() {
+            Some(&ptr) => (ptr, $index),
+            None => (0, $index - 1),
+        };
+        fp + idx
+    }};
 }
 
 macro_rules! binop {
@@ -106,7 +107,7 @@ macro_rules! binop {
 pub struct VM {
     stack: Vec<Object>,
     frame_ptrs: Vec<usize>,
-    ip: isize,
+    ip: usize,
 }
 
 impl Default for VM {
@@ -129,10 +130,10 @@ impl VM {
     pub fn run(&mut self, bytecode: &[Opcode]) {
         loop {
             if cfg!(debug_assertions) {
-                println!("current instruction: {:?}", bytecode[self.ip as usize]);
+                println!("current instruction: {:?}", bytecode[self.ip]);
             }
 
-            match bytecode[self.ip as usize] {
+            match bytecode[self.ip] {
                 Opcode::Const(n) => {
                     self.stack.push(n.into());
                 }
@@ -174,7 +175,7 @@ impl VM {
                     self.frame_ptrs.push(self.stack.len() - n);
                     self.stack
                         .insert(self.stack.len() - n, Object::BytecodePtr(self.ip));
-                    self.ip = addr as isize;
+                    self.ip = addr;
                 }
                 Opcode::Ret => {
                     self.frame_ptrs.pop();
@@ -184,13 +185,11 @@ impl VM {
                     }
                 }
                 Opcode::Deepget(idx) => {
-                    let adjusted_idx = adjust_idx(&self.frame_ptrs, idx);
-                    let item = self.stack[adjusted_idx];
+                    let item = self.stack[adjust_idx!(self, idx)];
                     self.stack.push(item);
                 }
                 Opcode::Deepset(idx) => {
-                    let adjusted_idx = adjust_idx(&self.frame_ptrs, idx);
-                    self.stack[adjusted_idx] = self.stack.pop().unwrap();
+                    self.stack[adjust_idx!(self, idx)] = self.stack.pop().unwrap();
                 }
                 Opcode::Pop => {
                     self.stack.pop();
@@ -203,7 +202,7 @@ impl VM {
 
             self.ip += 1;
 
-            if self.ip as usize == bytecode.len() {
+            if self.ip == bytecode.len() {
                 break;
             }
         }

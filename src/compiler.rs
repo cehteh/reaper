@@ -67,8 +67,8 @@ pub enum Opcode {
     Not,
     False,
     Eq,
-    Jmp(isize),
-    Jz(isize),
+    Jmp(usize),
+    Jz(usize),
     Ret,
     Less,
     Deepget(usize),
@@ -122,7 +122,7 @@ impl Codegen for FnStatement {
 
         compiler.emit_bytes(&[Opcode::Null, Opcode::Ret]);
 
-        compiler.bytecode[jmp_idx] = Opcode::Jmp(compiler.bytecode.len() as isize - 1);
+        compiler.bytecode[jmp_idx] = Opcode::Jmp(compiler.bytecode.len() - 1);
 
         compiler.locals.clear();
     }
@@ -159,11 +159,11 @@ impl Codegen for IfStatement {
 
         let jz_idx = compiler.emit_bytes(&[Opcode::Jz(0xFFFF)]);
         self.if_branch.codegen(compiler);
-        compiler.bytecode[jz_idx] = Opcode::Jz(compiler.bytecode.len() as isize - 1);
+        compiler.bytecode[jz_idx] = Opcode::Jz(compiler.bytecode.len() - 1);
 
         let else_idx = compiler.emit_bytes(&[Opcode::Jmp(0xFFFF)]);
         self.else_branch.codegen(compiler);
-        compiler.bytecode[else_idx] = Opcode::Jmp(compiler.bytecode.len() as isize - 1);
+        compiler.bytecode[else_idx] = Opcode::Jmp(compiler.bytecode.len() - 1);
     }
 }
 
