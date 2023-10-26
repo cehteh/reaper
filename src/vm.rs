@@ -193,7 +193,7 @@ impl VM {
                     self.stack.push(item);
                 }
                 Opcode::Deepset(idx) => {
-                    self.stack[adjust_idx!(self, idx)] = self.stack.pop().unwrap();
+                    self.stack.swap_remove(adjust_idx!(self, idx));
                 }
                 Opcode::Pop => {
                     self.stack.pop();
