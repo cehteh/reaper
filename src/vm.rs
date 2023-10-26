@@ -13,7 +13,7 @@ impl std::ops::Add for Object {
 
     fn add(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
-            (Object::Number(a), Object::Number(b)) => Object::Number(a + b),
+            (Object::Number(a), Object::Number(b)) => (a + b).into(),
             _ => unimplemented!(),
         }
     }
@@ -24,7 +24,7 @@ impl std::ops::Sub for Object {
 
     fn sub(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
-            (Object::Number(a), Object::Number(b)) => Object::Number(a - b),
+            (Object::Number(a), Object::Number(b)) => (a - b).into(),
             _ => unimplemented!(),
         }
     }
@@ -35,7 +35,7 @@ impl std::ops::Mul for Object {
 
     fn mul(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
-            (Object::Number(a), Object::Number(b)) => Object::Number(a * b),
+            (Object::Number(a), Object::Number(b)) => (a * b).into(),
             _ => unimplemented!(),
         }
     }
@@ -46,7 +46,7 @@ impl std::ops::Div for Object {
 
     fn div(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
-            (Object::Number(a), Object::Number(b)) => Object::Number(a / b),
+            (Object::Number(a), Object::Number(b)) => (a / b).into(),
             _ => unimplemented!(),
         }
     }
@@ -57,7 +57,7 @@ impl std::ops::Not for Object {
 
     fn not(self) -> Self::Output {
         match self {
-            Object::Bool(b) => Object::Bool(!b),
+            Object::Bool(b) => (!b).into(),
             _ => unimplemented!(),
         }
     }
@@ -74,13 +74,13 @@ impl std::cmp::PartialOrd for Object {
 
 impl From<bool> for Object {
     fn from(value: bool) -> Self {
-        Object::Bool(value)
+        Self::Bool(value)
     }
 }
 
 impl From<f64> for Object {
     fn from(value: f64) -> Self {
-        Object::Number(value)
+        Self::Number(value)
     }
 }
 
