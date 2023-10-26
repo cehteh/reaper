@@ -84,6 +84,7 @@ impl From<f64> for Object {
     }
 }
 
+#[inline]
 fn adjust_idx(frame_ptrs: &[usize], idx: usize) -> usize {
     let (fp, idx) = match frame_ptrs.last() {
         Some(&ptr) => (ptr, idx),
