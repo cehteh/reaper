@@ -5,6 +5,10 @@ pub enum Object {
     Number(f64),
     Bool(bool),
     Null,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum InternalObject {
     BytecodePtr(usize, usize),
 }
 
@@ -87,12 +91,11 @@ impl From<f64> for Object {
 macro_rules! adjust_idx {
     ($self:tt, $index:expr) => {{
         let (fp, idx) = match $self.frame_ptrs.last() {
-            Some(&obj) => if let Object::BytecodePtr(_ptr, location) = obj {
-                (location, $index - 1)
-            } else {
-                unimplemented!()
+            Some(&internal_obj) => {
+                let InternalObject::BytecodePtr(_, location) = internal_obj;
+                (location, $index)
             }
-            None => (0, $index - 1),
+            None => (0, $index),
         };
         fp + idx
     }};
@@ -110,7 +113,7 @@ macro_rules! binop {
 
 pub struct VM {
     stack: Vec<Object>,
-    frame_ptrs: Vec<Object>,
+    frame_ptrs: Vec<InternalObject>,
     ip: usize,
 }
 
@@ -176,17 +179,14 @@ impl VM {
                     }
                 }
                 Opcode::Invoke(n, addr) => {
-                    self.frame_ptrs.push(Object::BytecodePtr(self.ip, self.stack.len() - n));
+                    self.frame_ptrs
+                        .push(InternalObject::BytecodePtr(self.ip, self.stack.len() - n));
                     self.ip = addr;
                 }
                 Opcode::Ret => {
                     let retaddr = self.frame_ptrs.pop().unwrap();
-                    // let retaddr = self.stack.swap_remove(self.stack.len() - 2);
-                    // let (drain_start, drain_end) = (self.stack.len()-n-1, self.stack.len() - 1);                   
-                    // self.stack.drain(drain_start..drain_end);
-                    if let Object::BytecodePtr(ptr, _) = retaddr {
-                        self.ip = ptr;
-                    }
+                    let InternalObject::BytecodePtr(ptr, _) = retaddr;
+                    self.ip = ptr;
                 }
                 Opcode::Deepget(idx) => {
                     let item = self.stack[adjust_idx!(self, idx)];

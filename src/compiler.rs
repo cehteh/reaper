@@ -144,7 +144,7 @@ impl Codegen for ExpressionStatement {
 impl Codegen for ReturnStatement {
     fn codegen(&self, compiler: &mut Compiler) {
         self.expression.codegen(compiler);
-        let mut deepset_no = compiler.locals.len();
+        let mut deepset_no = compiler.locals.len() - 1;
         for _ in 0..compiler.locals.len() {
             compiler.emit_bytes(&[Opcode::Deepset(deepset_no)]);
             deepset_no -= 1;
@@ -201,7 +201,7 @@ impl Codegen for AssignExpression {
         let local = compiler.resolve_local(variable_name.clone());
 
         if let Some(idx) = local {
-            compiler.emit_bytes(&[Opcode::Deepset(idx + 1)]);
+            compiler.emit_bytes(&[Opcode::Deepset(idx)]);
         } else {
             compiler.locals.push(variable_name.clone());
             compiler.pops[compiler.depth] += 1;
@@ -278,11 +278,11 @@ impl Codegen for VariableExpression {
         let local = compiler.resolve_local(self.value.clone());
 
         if let Some(idx) = local {
-            compiler.emit_bytes(&[Opcode::Deepget(idx + 1)]);
+            compiler.emit_bytes(&[Opcode::Deepget(idx)]);
         } else {
             compiler.locals.push(self.value.clone());
             let idx = compiler.resolve_local(self.value.clone()).unwrap();
-            compiler.emit_bytes(&[Opcode::Deepget(idx + 1)]);
+            compiler.emit_bytes(&[Opcode::Deepget(idx)]);
         }
     }
 }
