@@ -26,6 +26,7 @@ pub enum TokenKind {
     DoubleEqual,
     True,
     False,
+    Null,
 }
 
 #[derive(Debug, Clone)]
@@ -53,7 +54,7 @@ impl Iterator for Tokenizer<'_> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let re_keyword = r"?P<keyword>print|fn|if|else|return";
-        let re_literal = r"?P<literal>true|false";
+        let re_literal = r"?P<literal>true|false|null";
         let re_identifier = r"?P<identifier>[a-zA-Z_][a-zA-Z0-9_]*";
         let re_individual = r"?P<individual>[-+*/(){};,<=!]";
         let re_double = r"?P<double>==|!=";
@@ -83,8 +84,9 @@ impl Iterator for Tokenizer<'_> {
                 } else if let Some(m) = captures.name("literal") {
                     self.start = m.end();
                     match m.as_str() {
-                        "true" =>Token::new(TokenKind::True, "true"),
+                        "true" => Token::new(TokenKind::True, "true"),
                         "false" => Token::new(TokenKind::False, "false"),
+                        "null" => Token::new(TokenKind::Null, "null"),
                         _ => unreachable!(),
                     }
                 } else if let Some(m) = captures.name("identifier") {

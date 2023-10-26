@@ -1,5 +1,5 @@
 use crate::tokenizer::{Token, TokenKind};
-use std::collections::VecDeque;
+use std::{collections::VecDeque, str::FromStr};
 
 #[derive(Debug)]
 pub enum Expression {
@@ -21,6 +21,18 @@ pub enum Literal {
     Num(f64),
     Bool(bool),
     Null,
+}
+
+impl FromStr for Literal {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "true" => Ok(Literal::Bool(true)),
+            "false" => Ok(Literal::Bool(false)),
+            "null" => Ok(Literal::Null),
+            _ => Err(format!("{} is not a valid object literal", s)),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -379,16 +391,16 @@ impl Parser {
         } else if self.is_next(&[TokenKind::Identifier]) {
             let var = self.previous.clone().unwrap().value;
             Expression::Variable(VariableExpression { value: var })
-        } else if self.is_next(&[TokenKind::True, TokenKind::False]) {
-            let b = self
+        } else if self.is_next(&[TokenKind::True, TokenKind::False, TokenKind::Null]) {
+            let literal: Literal = self
                 .previous
                 .clone()
                 .unwrap()
                 .value
                 .parse()
-                .expect("Failed to parse a boolean.");
+                .expect("Failed to parse a literal.");
             Expression::Literal(LiteralExpression {
-                value: Literal::Bool(b),
+                value: literal.into(),
             })
         } else {
             todo!();

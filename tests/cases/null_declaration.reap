@@ -1,0 +1,6 @@
+fn main() {
+    x = null;
+    print x;
+}
+
+main();
