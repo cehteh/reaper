@@ -147,7 +147,7 @@ impl Codegen for ReturnStatement {
         let mut deepset_no = compiler.locals.len() - 1;
         for _ in 0..compiler.locals.len() {
             compiler.emit_bytes(&[Opcode::Deepset(deepset_no)]);
-            deepset_no -= 1;
+            deepset_no = deepset_no.saturating_sub(1);
         }
         compiler.emit_bytes(&[Opcode::Ret]);
     }
