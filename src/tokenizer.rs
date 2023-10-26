@@ -52,7 +52,8 @@ impl Iterator for Tokenizer<'_> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let re_keyword = r"?P<keyword>print|fn|if|else|return|true|false";
+        let re_keyword = r"?P<keyword>print|fn|if|else|return";
+        let re_literal = r"?P<literal>true|false";
         let re_identifier = r"?P<identifier>[a-zA-Z_][a-zA-Z0-9_]*";
         let re_individual = r"?P<individual>[-+*/(){};,<=!]";
         let re_double = r"?P<double>==|!=";
@@ -60,8 +61,8 @@ impl Iterator for Tokenizer<'_> {
 
         let r = Regex::new(
             format!(
-                "({})|({})|({})|({})|({})",
-                re_keyword, re_identifier, re_double, re_individual, re_number,
+                "({})|({})|({})|({})|({})|({})",
+                re_keyword, re_literal, re_identifier, re_double, re_individual, re_number,
             )
             .as_str(),
         )
@@ -77,7 +78,12 @@ impl Iterator for Tokenizer<'_> {
                         "if" => Token::new(TokenKind::If, "if"),
                         "else" => Token::new(TokenKind::Else, "else"),
                         "return" => Token::new(TokenKind::Return, "return"),
-                        "true" => Token::new(TokenKind::True, "true"),
+                        _ => unreachable!(),
+                    }
+                } else if let Some(m) = captures.name("literal") {
+                    self.start = m.end();
+                    match m.as_str() {
+                        "true" =>Token::new(TokenKind::True, "true"),
                         "false" => Token::new(TokenKind::False, "false"),
                         _ => unreachable!(),
                     }
