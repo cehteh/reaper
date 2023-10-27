@@ -1,6 +1,8 @@
+use core::fmt;
+
 use crate::compiler::Opcode;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(PartialEq, Clone)]
 pub enum Object {
     Number(f64),
     Bool(bool),
@@ -13,12 +15,27 @@ enum InternalObject {
     BytecodePtr(usize, usize),
 }
 
+impl fmt::Debug for Object {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Object::String(s) => f.write_str(s),
+            Object::Number(n) => f.write_str(&n.to_string()),
+            Object::Bool(b) => f.write_str(&b.to_string()),
+            Object::Null => f.write_str("null"),
+        }
+    }
+}
+
 impl std::ops::Add for Object {
     type Output = Object;
 
     fn add(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
             (Object::Number(a), Object::Number(b)) => (a + b).into(),
+            (Object::String(mut a), Object::String(b)) => {
+                a.push_str(&b);
+                (*a).into()
+            }
             _ => unimplemented!(),
         }
     }

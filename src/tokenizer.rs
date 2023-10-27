@@ -61,11 +61,11 @@ impl Iterator for Tokenizer<'_> {
         let re_individual = r"?P<individual>[-+*/(){};,<=!]";
         let re_double = r"?P<double>==|!=";
         let re_number = r"?P<number>[-+]?\d+(\.\d+)?";
-        let re_string = r#"?P<string>"([^"]*)""#;
+        let re_string = r#""(?P<string>[^\n"]*)""#;
 
         let r = Regex::new(
             format!(
-                "({})|({})|({})|({})|({})|({})|({})",
+                "({})|({})|({})|({})|({})|({})|{}",
                 re_keyword,
                 re_literal,
                 re_identifier,
