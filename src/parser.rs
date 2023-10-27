@@ -423,7 +423,9 @@ impl Parser {
             Expression::Literal(LiteralExpression { value: literal })
         } else if self.is_next(&[TokenKind::String]) {
             let string = self.previous.clone().unwrap().value;
-            Expression::Literal(LiteralExpression { value: Literal::String(string) })
+            Expression::Literal(LiteralExpression {
+                value: Literal::String(string),
+            })
         } else {
             todo!();
         }

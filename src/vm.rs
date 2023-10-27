@@ -154,7 +154,7 @@ impl VM {
                 Opcode::Add => self.handle_op_add(),
                 Opcode::Sub => self.handle_op_sub(),
                 Opcode::Mul => self.handle_op_mul(),
-                Opcode::Div => self.handle_op_div(), 
+                Opcode::Div => self.handle_op_div(),
                 Opcode::Less => self.handle_op_less(),
                 Opcode::Eq => self.handle_op_eq(),
                 Opcode::False => self.handle_op_false(),
@@ -227,27 +227,27 @@ impl VM {
         self.stack.push(false.into());
     }
 
-    fn handle_op_add(&mut self) { 
+    fn handle_op_add(&mut self) {
         binop!(self, +);
     }
 
-    fn handle_op_sub(&mut self) { 
+    fn handle_op_sub(&mut self) {
         binop!(self, -);
     }
 
-    fn handle_op_mul(&mut self) { 
+    fn handle_op_mul(&mut self) {
         binop!(self, *);
     }
 
-    fn handle_op_div(&mut self) { 
+    fn handle_op_div(&mut self) {
         binop!(self, /);
     }
 
-    fn handle_op_less(&mut self) { 
+    fn handle_op_less(&mut self) {
         binop!(self, <);
     }
 
-    fn handle_op_eq(&mut self) { 
+    fn handle_op_eq(&mut self) {
         binop!(self, ==);
     }
 

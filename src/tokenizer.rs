@@ -66,7 +66,13 @@ impl Iterator for Tokenizer<'_> {
         let r = Regex::new(
             format!(
                 "({})|({})|({})|({})|({})|({})|({})",
-                re_keyword, re_literal, re_identifier, re_double, re_individual, re_number, re_string,
+                re_keyword,
+                re_literal,
+                re_identifier,
+                re_double,
+                re_individual,
+                re_number,
+                re_string,
             )
             .as_str(),
         )
