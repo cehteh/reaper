@@ -132,7 +132,6 @@ impl Iterator for Tokenizer<'_> {
                     Token::new(TokenKind::Number, m.as_str())
                 } else if let Some(m) = captures.name("string") {
                     self.start = m.end();
-                    println!("TOKENIZED: {:?}", m.as_str());
                     Token::new(TokenKind::String, m.as_str())
                 } else {
                     return None;
