@@ -61,6 +61,10 @@ fn test_code_fragments() {
             "tests/cases/null_declaration.reap",
             object_vec![Object::Null],
         ),
+        (
+            "tests/cases/while01.reap",
+            object_vec![0.0, 1.0, 2.0, 3.0, 4.0],
+        ),
     ];
     for (path, expected) in pairs {
         let (stdout, mut filtered) = fetch_output(path);

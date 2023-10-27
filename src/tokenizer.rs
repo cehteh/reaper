@@ -27,6 +27,7 @@ pub enum TokenKind {
     True,
     False,
     Null,
+    While,
 }
 
 #[derive(Debug, Clone)]
@@ -53,7 +54,7 @@ impl Iterator for Tokenizer<'_> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let re_keyword = r"?P<keyword>print|fn|if|else|return";
+        let re_keyword = r"?P<keyword>print|fn|if|else|return|while";
         let re_literal = r"?P<literal>true|false|null";
         let re_identifier = r"?P<identifier>[a-zA-Z_][a-zA-Z0-9_]*";
         let re_individual = r"?P<individual>[-+*/(){};,<=!]";
@@ -79,6 +80,7 @@ impl Iterator for Tokenizer<'_> {
                         "if" => Token::new(TokenKind::If, "if"),
                         "else" => Token::new(TokenKind::Else, "else"),
                         "return" => Token::new(TokenKind::Return, "return"),
+                        "while" => Token::new(TokenKind::While, "return"),
                         _ => unreachable!(),
                     }
                 } else if let Some(m) = captures.name("literal") {

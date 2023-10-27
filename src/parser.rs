@@ -83,6 +83,7 @@ pub enum Statement {
     Return(ReturnStatement),
     If(IfStatement),
     Block(BlockStatement),
+    While(WhileStatement),
 }
 
 #[derive(Debug)]
@@ -112,6 +113,12 @@ pub struct IfStatement {
     pub condition: Expression,
     pub if_branch: Box<Statement>,
     pub else_branch: Box<Statement>,
+}
+
+#[derive(Debug)]
+pub struct WhileStatement {
+    pub condition: Expression,
+    pub body: Box<Statement>,
 }
 
 #[derive(Debug)]
@@ -176,6 +183,8 @@ impl Parser {
             self.parse_fn_statement()
         } else if self.is_next(&[TokenKind::If]) {
             self.parse_if_statement()
+        } else if self.is_next(&[TokenKind::While]) {
+            self.parse_while_statement()
         } else if self.is_next(&[TokenKind::LeftBrace]) {
             self.parse_block_statement()
         } else if self.is_next(&[TokenKind::Return]) {
@@ -183,6 +192,14 @@ impl Parser {
         } else {
             self.parse_expression_statement()
         }
+    }
+
+    fn parse_while_statement(&mut self) -> Statement {
+        self.consume(TokenKind::LeftParen);
+        let condition = self.parse_expression();
+        self.consume(TokenKind::RightParen);
+        let body = self.parse_statement();
+        Statement::While(WhileStatement { condition, body: body.into() })
     }
 
     fn parse_return_statement(&mut self) -> Statement {

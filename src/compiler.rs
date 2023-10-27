@@ -1,7 +1,7 @@
 use crate::parser::{
     AssignExpression, BinaryExpression, BinaryExpressionKind, BlockStatement, CallExpression,
     Expression, ExpressionStatement, FnStatement, IfStatement, Literal, LiteralExpression,
-    PrintStatement, ReturnStatement, Statement, UnaryExpression, VariableExpression,
+    PrintStatement, ReturnStatement, Statement, UnaryExpression, VariableExpression, WhileStatement,
 };
 
 pub struct Compiler {
@@ -90,6 +90,7 @@ impl Codegen for Statement {
             Statement::Return(return_statement) => return_statement.codegen(compiler),
             Statement::If(if_statement) => if_statement.codegen(compiler),
             Statement::Block(block_statement) => block_statement.codegen(compiler),
+            Statement::While(while_statement) => while_statement.codegen(compiler),
             _ => {}
         }
     }
@@ -125,6 +126,17 @@ impl Codegen for FnStatement {
         compiler.bytecode[jmp_idx] = Opcode::Jmp(compiler.bytecode.len() - 1);
 
         compiler.locals.clear();
+    }
+}
+
+impl Codegen for WhileStatement {
+    fn codegen(&self, compiler: &mut Compiler) {
+        let loop_start = compiler.bytecode.len() - 1;
+        self.condition.codegen(compiler);
+        let jz_idx = compiler.emit_bytes(&[Opcode::Jz(0xFFFF)]);
+        self.body.codegen(compiler);
+        compiler.emit_bytes(&[Opcode::Jmp(loop_start)]);
+        compiler.bytecode[jz_idx] = Opcode::Jz(compiler.bytecode.len() - 1);
     }
 }
 
