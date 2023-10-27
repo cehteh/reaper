@@ -1,5 +1,3 @@
-use core::fmt;
-
 use crate::compiler::Opcode;
 
 #[derive(Debug, PartialEq, Clone)]
