@@ -261,8 +261,8 @@ impl VM {
         }
     }
 
-    fn handle_op_str(&mut self, s: &String) {
-        self.stack.push(s.clone().into());
+    fn handle_op_str(&mut self, s: &str) {
+        self.stack.push(s.to_owned().into());
     }
 
     fn handle_op_const(&mut self, n: &f64) {
