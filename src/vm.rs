@@ -2,7 +2,7 @@ use core::fmt;
 
 use crate::compiler::Opcode;
 
-#[derive(PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Object {
     Number(f64),
     Bool(bool),
@@ -13,17 +13,6 @@ pub enum Object {
 #[derive(Debug, Clone, Copy)]
 enum InternalObject {
     BytecodePtr(usize, usize),
-}
-
-impl fmt::Debug for Object {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Object::String(s) => f.write_str(s),
-            Object::Number(n) => f.write_str(&n.to_string()),
-            Object::Bool(b) => f.write_str(&b.to_string()),
-            Object::Null => f.write_str("null"),
-        }
-    }
 }
 
 impl std::ops::Add for Object {
