@@ -1,7 +1,8 @@
 use crate::parser::{
     AssignExpression, BinaryExpression, BinaryExpressionKind, BlockStatement, CallExpression,
     Expression, ExpressionStatement, FnStatement, IfStatement, Literal, LiteralExpression,
-    PrintStatement, ReturnStatement, Statement, UnaryExpression, VariableExpression, WhileStatement,
+    PrintStatement, ReturnStatement, Statement, UnaryExpression, VariableExpression,
+    WhileStatement,
 };
 
 pub struct Compiler {

@@ -199,7 +199,10 @@ impl Parser {
         let condition = self.parse_expression();
         self.consume(TokenKind::RightParen);
         let body = self.parse_statement();
-        Statement::While(WhileStatement { condition, body: body.into() })
+        Statement::While(WhileStatement {
+            condition,
+            body: body.into(),
+        })
     }
 
     fn parse_return_statement(&mut self) -> Statement {
