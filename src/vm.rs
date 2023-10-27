@@ -148,67 +148,25 @@ impl VM {
             }
 
             match &bytecode[self.ip] {
-                Opcode::Const(n) => {
-                    self.stack.push((*n).into());
-                }
-                Opcode::Str(s) => {
-                    self.stack.push(s.clone().into());
-                }
-                Opcode::Print => {
-                    let obj = self.stack.pop();
-                    if let Some(o) = obj {
-                        if cfg!(debug_assertions) {
-                            print!("dbg: ");
-                        }
-                        println!("{:?}", o);
-                    }
-                }
-                Opcode::Add => binop!(self, +),
-                Opcode::Sub => binop!(self, -),
-                Opcode::Mul => binop!(self, *),
-                Opcode::Div => binop!(self, /),
-                Opcode::Less => binop!(self, <),
-                Opcode::Eq => binop!(self, ==),
-                Opcode::False => {
-                    self.stack.push(false.into());
-                }
-                Opcode::Not => {
-                    let obj = self.stack.pop().unwrap();
-                    self.stack.push(!obj);
-                }
-                Opcode::Null => {
-                    self.stack.push(Object::Null);
-                }
-                Opcode::Jmp(addr) => {
-                    self.ip = *addr;
-                }
-                Opcode::Jz(addr) => {
-                    let item = self.stack.pop().unwrap();
-                    if let Object::Bool(_b @ false) = item {
-                        self.ip = *addr;
-                    }
-                }
-                Opcode::Invoke(n) => {
-                    self.frame_ptrs.push(InternalObject::BytecodePtr(
-                        self.ip + 1,
-                        self.stack.len() - n,
-                    ));
-                }
-                Opcode::Ret => {
-                    let retaddr = self.frame_ptrs.pop().unwrap();
-                    let InternalObject::BytecodePtr(ptr, _) = retaddr;
-                    self.ip = ptr;
-                }
-                Opcode::Deepget(idx) => {
-                    let item = self.stack[adjust_idx!(self, idx)].clone();
-                    self.stack.push(item);
-                }
-                Opcode::Deepset(idx) => {
-                    self.stack.swap_remove(adjust_idx!(self, idx));
-                }
-                Opcode::Pop => {
-                    self.stack.pop();
-                }
+                Opcode::Const(n) => self.handle_op_const(n),
+                Opcode::Str(s) => self.handle_op_str(s),
+                Opcode::Print => self.handle_op_print(),
+                Opcode::Add => self.handle_op_add(),
+                Opcode::Sub => self.handle_op_sub(),
+                Opcode::Mul => self.handle_op_mul(),
+                Opcode::Div => self.handle_op_div(), 
+                Opcode::Less => self.handle_op_less(),
+                Opcode::Eq => self.handle_op_eq(),
+                Opcode::False => self.handle_op_false(),
+                Opcode::Not => self.handle_op_not(),
+                Opcode::Null => self.handle_op_null(),
+                Opcode::Jmp(addr) => self.handle_op_jmp(addr),
+                Opcode::Jz(addr) => self.handle_op_jz(addr),
+                Opcode::Invoke(n) => self.handle_op_invoke(n),
+                Opcode::Ret => self.handle_op_ret(),
+                Opcode::Deepget(idx) => self.handle_op_deepget(idx),
+                Opcode::Deepset(idx) => self.handle_op_deepset(idx),
+                Opcode::Pop => self.handle_op_pop(),
             }
 
             if cfg!(debug_assertions) {
@@ -217,5 +175,97 @@ impl VM {
 
             self.ip += 1;
         }
+    }
+
+    fn handle_op_pop(&mut self) {
+        self.stack.pop();
+    }
+
+    fn handle_op_deepset(&mut self, idx: &usize) {
+        self.stack.swap_remove(adjust_idx!(self, idx));
+    }
+
+    fn handle_op_deepget(&mut self, idx: &usize) {
+        let item = self.stack[adjust_idx!(self, idx)].clone();
+        self.stack.push(item);
+    }
+
+    fn handle_op_ret(&mut self) {
+        let retaddr = self.frame_ptrs.pop().unwrap();
+        let InternalObject::BytecodePtr(ptr, _) = retaddr;
+        self.ip = ptr;
+    }
+
+    fn handle_op_invoke(&mut self, n: &usize) {
+        self.frame_ptrs.push(InternalObject::BytecodePtr(
+            self.ip + 1,
+            self.stack.len() - n,
+        ));
+    }
+
+    fn handle_op_jz(&mut self, addr: &usize) {
+        let item = self.stack.pop().unwrap();
+        if let Object::Bool(_b @ false) = item {
+            self.ip = *addr;
+        }
+    }
+
+    fn handle_op_jmp(&mut self, addr: &usize) {
+        self.ip = *addr;
+    }
+
+    fn handle_op_null(&mut self) {
+        self.stack.push(Object::Null);
+    }
+
+    fn handle_op_not(&mut self) {
+        let obj = self.stack.pop().unwrap();
+        self.stack.push(!obj);
+    }
+
+    fn handle_op_false(&mut self) {
+        self.stack.push(false.into());
+    }
+
+    fn handle_op_add(&mut self) { 
+        binop!(self, +);
+    }
+
+    fn handle_op_sub(&mut self) { 
+        binop!(self, -);
+    }
+
+    fn handle_op_mul(&mut self) { 
+        binop!(self, *);
+    }
+
+    fn handle_op_div(&mut self) { 
+        binop!(self, /);
+    }
+
+    fn handle_op_less(&mut self) { 
+        binop!(self, <);
+    }
+
+    fn handle_op_eq(&mut self) { 
+        binop!(self, ==);
+    }
+
+    fn handle_op_print(&mut self) {
+        let obj = self.stack.pop();
+        if let Some(o) = obj {
+            if cfg!(debug_assertions) {
+                print!("dbg: ");
+            }
+            println!("{:?}", o);
+        }
+    }
+
+    fn handle_op_str(&mut self, s: &String) {
+        self.stack.push(s.clone().into());
+    }
+
+    fn handle_op_const(&mut self, n: &f64) {
+        self.stack.push((*n).into());
     }
 }
