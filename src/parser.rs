@@ -20,6 +20,7 @@ pub struct LiteralExpression {
 pub enum Literal {
     Num(f64),
     Bool(bool),
+    String(String),
     Null,
 }
 
@@ -420,6 +421,9 @@ impl Parser {
                 .parse()
                 .expect("Failed to parse a literal.");
             Expression::Literal(LiteralExpression { value: literal })
+        } else if self.is_next(&[TokenKind::String]) {
+            let string = self.previous.clone().unwrap().value;
+            Expression::Literal(LiteralExpression { value: Literal::String(string) })
         } else {
             todo!();
         }

@@ -28,6 +28,7 @@ pub enum TokenKind {
     False,
     Null,
     While,
+    String,
 }
 
 #[derive(Debug, Clone)]
@@ -60,11 +61,12 @@ impl Iterator for Tokenizer<'_> {
         let re_individual = r"?P<individual>[-+*/(){};,<=!]";
         let re_double = r"?P<double>==|!=";
         let re_number = r"?P<number>[-+]?\d+(\.\d+)?";
+        let re_string = r#"?P<string>"([^"]*)""#;
 
         let r = Regex::new(
             format!(
-                "({})|({})|({})|({})|({})|({})",
-                re_keyword, re_literal, re_identifier, re_double, re_individual, re_number,
+                "({})|({})|({})|({})|({})|({})|({})",
+                re_keyword, re_literal, re_identifier, re_double, re_individual, re_number, re_string,
             )
             .as_str(),
         )
@@ -122,6 +124,10 @@ impl Iterator for Tokenizer<'_> {
                 } else if let Some(m) = captures.name("number") {
                     self.start = m.end();
                     Token::new(TokenKind::Number, m.as_str())
+                } else if let Some(m) = captures.name("string") {
+                    self.start = m.end();
+                    println!("TOKENIZED: {:?}", m.as_str());
+                    Token::new(TokenKind::String, m.as_str())
                 } else {
                     return None;
                 }

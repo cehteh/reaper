@@ -39,7 +39,7 @@ impl Compiler {
 
     fn emit_bytes(&mut self, opcodes: &[Opcode]) -> usize {
         for opcode in opcodes {
-            self.bytecode.push(*opcode);
+            self.bytecode.push(opcode.clone());
         }
         self.bytecode.len() - opcodes.len()
     }
@@ -56,7 +56,7 @@ impl Compiler {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum Opcode {
     Print,
     Const(f64),
@@ -76,6 +76,7 @@ pub enum Opcode {
     Deepset(usize),
     Pop,
     Invoke(usize),
+    Str(String),
 }
 
 trait Codegen {
@@ -275,9 +276,9 @@ impl Codegen for BinaryExpression {
 
 impl Codegen for LiteralExpression {
     fn codegen(&self, compiler: &mut Compiler) {
-        match self.value {
+        match &self.value {
             Literal::Num(n) => {
-                compiler.emit_bytes(&[Opcode::Const(n)]);
+                compiler.emit_bytes(&[Opcode::Const(*n)]);
             }
             Literal::Bool(b) => match b {
                 true => {
@@ -287,6 +288,9 @@ impl Codegen for LiteralExpression {
                     compiler.emit_bytes(&[Opcode::False]);
                 }
             },
+            Literal::String(s) => {
+                compiler.emit_bytes(&[Opcode::Str(s.clone())]);
+            }
             Literal::Null => {
                 compiler.emit_bytes(&[Opcode::Null]);
             }

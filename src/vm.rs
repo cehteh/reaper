@@ -1,9 +1,10 @@
 use crate::compiler::Opcode;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Object {
     Number(f64),
     Bool(bool),
+    String(Box<String>),
     Null,
 }
 
@@ -88,6 +89,12 @@ impl From<f64> for Object {
     }
 }
 
+impl From<String> for Object {
+    fn from(value: String) -> Self {
+        Self::String(value.into())
+    }
+}
+
 macro_rules! adjust_idx {
     ($self:tt, $index:expr) => {{
         let (fp, idx) = match $self.frame_ptrs.last() {
@@ -140,9 +147,12 @@ impl VM {
                 println!("current instruction: {:?}", bytecode[self.ip]);
             }
 
-            match bytecode[self.ip] {
+            match &bytecode[self.ip] {
                 Opcode::Const(n) => {
-                    self.stack.push(n.into());
+                    self.stack.push((*n).into());
+                }
+                Opcode::Str(s) => {
+                    self.stack.push(s.clone().into());
                 }
                 Opcode::Print => {
                     let obj = self.stack.pop();
@@ -170,12 +180,12 @@ impl VM {
                     self.stack.push(Object::Null);
                 }
                 Opcode::Jmp(addr) => {
-                    self.ip = addr;
+                    self.ip = *addr;
                 }
                 Opcode::Jz(addr) => {
                     let item = self.stack.pop().unwrap();
                     if let Object::Bool(_b @ false) = item {
-                        self.ip = addr;
+                        self.ip = *addr;
                     }
                 }
                 Opcode::Invoke(n) => {
@@ -190,7 +200,7 @@ impl VM {
                     self.ip = ptr;
                 }
                 Opcode::Deepget(idx) => {
-                    let item = self.stack[adjust_idx!(self, idx)];
+                    let item = self.stack[adjust_idx!(self, idx)].clone();
                     self.stack.push(item);
                 }
                 Opcode::Deepset(idx) => {
