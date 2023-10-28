@@ -131,12 +131,10 @@ impl Default for VM {
 }
 
 macro_rules! runtime_error {
-    ($msg:expr) => {
-        {
-            eprintln!("{}", $msg);
-            std::process::exit(1);
-        }
-    };
+    ($msg:expr) => {{
+        eprintln!("{}", $msg);
+        std::process::exit(1);
+    }};
 }
 
 const STACK_MIN: usize = 1024;
@@ -202,13 +200,12 @@ impl VM {
         match (a, b) {
             (Object::String(mut a), Object::String(b)) => {
                 a.push_str(&b);
-                self.stack.push((*a).into());        
+                self.stack.push((*a).into());
             }
             _ => {
                 runtime_error!("Can only concatenate two strings.");
             }
         }
-        
     }
 
     fn handle_op_print(&mut self) {
