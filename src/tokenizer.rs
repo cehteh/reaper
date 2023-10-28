@@ -13,6 +13,7 @@ pub enum TokenKind {
     RightBrace,
     Number,
     Plus,
+    PlusPlus,
     Minus,
     Star,
     Slash,
@@ -59,7 +60,7 @@ impl Iterator for Tokenizer<'_> {
         let re_literal = r"?P<literal>true|false|null";
         let re_identifier = r"?P<identifier>[a-zA-Z_][a-zA-Z0-9_]*";
         let re_individual = r"?P<individual>[-+*/(){};,<=!]";
-        let re_double = r"?P<double>==|!=";
+        let re_double = r"?P<double>==|!=|\+\+";
         let re_number = r"?P<number>[-+]?\d+(\.\d+)?";
         let re_string = r#""(?P<string>[^\n"]*)""#;
 
@@ -106,7 +107,8 @@ impl Iterator for Tokenizer<'_> {
                     self.start = m.end();
                     match m.as_str() {
                         "==" => Token::new(TokenKind::DoubleEqual, "=="),
-                        "!=" => Token::new(TokenKind::BangEqual, "=="),
+                        "!=" => Token::new(TokenKind::BangEqual, "!="),
+                        "++" => Token::new(TokenKind::PlusPlus, "++"),
                         _ => unreachable!(),
                     }
                 } else if let Some(m) = captures.name("individual") {

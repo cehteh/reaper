@@ -1,7 +1,7 @@
 fn main() {
     x = "Hello, ";
     y = "world!";
-    print x + y;
+    print x ++ y;
 }
 
 main();

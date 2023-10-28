@@ -77,6 +77,7 @@ pub enum Opcode {
     Pop,
     Invoke(usize),
     Str(String),
+    Strcat,
 }
 
 trait Codegen {
@@ -269,6 +270,9 @@ impl Codegen for BinaryExpression {
                 if negation {
                     compiler.emit_bytes(&[Opcode::Not]);
                 }
+            }
+            BinaryExpressionKind::Strcat => {
+                compiler.emit_bytes(&[Opcode::Strcat]);
             }
         }
     }

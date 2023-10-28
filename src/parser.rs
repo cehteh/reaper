@@ -56,6 +56,7 @@ pub enum BinaryExpressionKind {
     Div,
     Less,
     Equality(bool),
+    Strcat,
 }
 
 #[derive(Debug)]
@@ -331,11 +332,12 @@ impl Parser {
 
     fn term(&mut self) -> Expression {
         let mut result = self.factor();
-        while self.is_next(&[TokenKind::Plus, TokenKind::Minus]) {
+        while self.is_next(&[TokenKind::Plus, TokenKind::Minus, TokenKind::PlusPlus]) {
             let kind = match self.previous.clone() {
                 Some(token) => match token.kind {
                     TokenKind::Plus => BinaryExpressionKind::Add,
                     TokenKind::Minus => BinaryExpressionKind::Sub,
+                    TokenKind::PlusPlus => BinaryExpressionKind::Strcat,
                     _ => unreachable!(),
                 },
                 None => unreachable!(),

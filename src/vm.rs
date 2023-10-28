@@ -19,11 +19,7 @@ impl std::ops::Add for Object {
     fn add(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
             (Object::Number(a), Object::Number(b)) => (a + b).into(),
-            (Object::String(mut a), Object::String(b)) => {
-                a.push_str(&b);
-                (*a).into()
-            }
-            _ => unimplemented!(),
+            _ => unreachable!(),
         }
     }
 }
@@ -134,6 +130,15 @@ impl Default for VM {
     }
 }
 
+macro_rules! runtime_error {
+    ($msg:expr) => {
+        {
+            eprintln!("{}", $msg);
+            std::process::exit(1);
+        }
+    };
+}
+
 const STACK_MIN: usize = 1024;
 
 impl VM {
@@ -154,6 +159,7 @@ impl VM {
             match &bytecode[self.ip] {
                 Opcode::Const(n) => self.handle_op_const(n),
                 Opcode::Str(s) => self.handle_op_str(s),
+                Opcode::Strcat => self.handle_op_strcat(),
                 Opcode::Print => self.handle_op_print(),
                 Opcode::Add => self.handle_op_add(),
                 Opcode::Sub => self.handle_op_sub(),
@@ -187,6 +193,22 @@ impl VM {
 
     fn handle_op_str(&mut self, s: &str) {
         self.stack.push(s.to_owned().into());
+    }
+
+    fn handle_op_strcat(&mut self) {
+        let b = self.stack.pop().unwrap();
+        let a = self.stack.pop().unwrap();
+
+        match (a, b) {
+            (Object::String(mut a), Object::String(b)) => {
+                a.push_str(&b);
+                self.stack.push((*a).into());        
+            }
+            _ => {
+                runtime_error!("Can only concatenate two strings.");
+            }
+        }
+        
     }
 
     fn handle_op_print(&mut self) {
