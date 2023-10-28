@@ -76,7 +76,7 @@ pub enum Opcode {
     Deepset(usize),
     Pop,
     Invoke(usize),
-    Str(String),
+    Str(Box<String>),
     Strcat,
 }
 
@@ -293,7 +293,7 @@ impl Codegen for LiteralExpression {
                 }
             },
             Literal::String(s) => {
-                compiler.emit_bytes(&[Opcode::Str(s.clone())]);
+                compiler.emit_bytes(&[Opcode::Str(s.clone().into())]);
             }
             Literal::Null => {
                 compiler.emit_bytes(&[Opcode::Null]);
