@@ -16,7 +16,7 @@ fn main() -> Result<(), std::io::Error> {
             let mut vm = VM::default();
             let ast = parser.parse(tokenizer.into_iter().collect());
             let bytecode = compiler.compile(ast);
-            vm.run(&bytecode);
+            vm.run(bytecode);
         }
         None => eprintln!("You must pass in a path."),
     }

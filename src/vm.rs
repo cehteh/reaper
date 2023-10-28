@@ -148,15 +148,15 @@ impl VM {
         }
     }
 
-    pub fn run(&mut self, bytecode: &[Opcode]) {
+    pub fn run(&mut self, bytecode: Vec<Opcode>) {
         while self.ip != bytecode.len() {
             if cfg!(debug_assertions) {
                 println!("current instruction: {:?}", bytecode[self.ip]);
             }
 
-            match &bytecode[self.ip] {
+            match bytecode[self.ip] {
                 Opcode::Const(n) => self.handle_op_const(n),
-                Opcode::Str(s) => self.handle_op_str(s),
+                Opcode::Str(ref s) => self.handle_op_str(s),
                 Opcode::Strcat => self.handle_op_strcat(),
                 Opcode::Print => self.handle_op_print(),
                 Opcode::Add => self.handle_op_add(),
@@ -185,8 +185,8 @@ impl VM {
         }
     }
 
-    fn handle_op_const(&mut self, n: &f64) {
-        self.stack.push((*n).into());
+    fn handle_op_const(&mut self, n: f64) {
+        self.stack.push(n.into());
     }
 
     fn handle_op_str(&mut self, s: &str) {
@@ -255,18 +255,18 @@ impl VM {
         self.stack.push(Object::Null);
     }
 
-    fn handle_op_jmp(&mut self, addr: &usize) {
-        self.ip = *addr;
+    fn handle_op_jmp(&mut self, addr: usize) {
+        self.ip = addr;
     }
 
-    fn handle_op_jz(&mut self, addr: &usize) {
+    fn handle_op_jz(&mut self, addr: usize) {
         let item = self.stack.pop().unwrap();
         if let Object::Bool(_b @ false) = item {
-            self.ip = *addr;
+            self.ip = addr;
         }
     }
 
-    fn handle_op_invoke(&mut self, n: &usize) {
+    fn handle_op_invoke(&mut self, n: usize) {
         self.frame_ptrs.push(InternalObject::BytecodePtr(
             self.ip + 1,
             self.stack.len() - n,
@@ -279,12 +279,12 @@ impl VM {
         self.ip = ptr;
     }
 
-    fn handle_op_deepget(&mut self, idx: &usize) {
+    fn handle_op_deepget(&mut self, idx: usize) {
         let item = self.stack[adjust_idx!(self, idx)].clone();
         self.stack.push(item);
     }
 
-    fn handle_op_deepset(&mut self, idx: &usize) {
+    fn handle_op_deepset(&mut self, idx: usize) {
         self.stack.swap_remove(adjust_idx!(self, idx));
     }
 
