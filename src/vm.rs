@@ -118,13 +118,14 @@ macro_rules! binop {
     };
 }
 
-pub struct VM {
+pub struct VM<'a> {
+    bytecode: Option<&'a [Opcode]>,
     stack: Vec<Object>,
     frame_ptrs: Vec<InternalObject>,
     ip: usize,
 }
 
-impl Default for VM {
+impl Default for VM<'_> {
     fn default() -> Self {
         Self::new()
     }
@@ -139,23 +140,30 @@ macro_rules! runtime_error {
 
 const STACK_MIN: usize = 1024;
 
-impl VM {
-    pub fn new() -> VM {
+
+
+impl<'a> VM<'a> {
+
+    pub fn new() -> VM<'a> {
         VM {
+            bytecode: None,
             stack: Vec::with_capacity(STACK_MIN),
             frame_ptrs: Vec::with_capacity(STACK_MIN),
             ip: 0,
         }
     }
 
-    pub fn run(&mut self, bytecode: Vec<Opcode>) {
-        while self.ip != bytecode.len() {
-            if cfg!(debug_assertions) {
-                println!("current instruction: {:?}", bytecode[self.ip]);
-            }
+    pub fn load(&mut self, bytecode: &'a mut Vec<Opcode>) {
+        bytecode.push(Opcode::EndOfProgram);
+        self.bytecode = Some(bytecode);
+    }
 
-            match bytecode[self.ip] {
-                Opcode::Const(n) => self.handle_op_const(n),
+    pub fn run(&mut self) {
+        let bytecode= self.bytecode.expect("no program loaded");
+        assert!(self.ip < bytecode.len(), "ip out of bounds");
+        loop {
+            match unsafe { bytecode.get_unchecked(self.ip)} {
+                Opcode::Const(n) => self.handle_op_const(*n),
                 Opcode::Str(ref s) => self.handle_op_str(s),
                 Opcode::Strcat => self.handle_op_strcat(),
                 Opcode::Print => self.handle_op_print(),
@@ -168,19 +176,15 @@ impl VM {
                 Opcode::False => self.handle_op_false(),
                 Opcode::Not => self.handle_op_not(),
                 Opcode::Null => self.handle_op_null(),
-                Opcode::Jmp(addr) => self.handle_op_jmp(addr),
-                Opcode::Jz(addr) => self.handle_op_jz(addr),
-                Opcode::Invoke(n) => self.handle_op_invoke(n),
+                Opcode::Jmp(addr) => self.handle_op_jmp(*addr),
+                Opcode::Jz(addr) => self.handle_op_jz(*addr),
+                Opcode::Invoke(n) => self.handle_op_invoke(*n),
                 Opcode::Ret => self.handle_op_ret(),
-                Opcode::Deepget(idx) => self.handle_op_deepget(idx),
-                Opcode::Deepset(idx) => self.handle_op_deepset(idx),
+                Opcode::Deepget(idx) => self.handle_op_deepget(*idx),
+                Opcode::Deepset(idx) => self.handle_op_deepset(*idx),
                 Opcode::Pop => self.handle_op_pop(),
+                Opcode::EndOfProgram => break,
             }
-
-            if cfg!(debug_assertions) {
-                println!("stack: {:?}", self.stack);
-            }
-
             self.ip += 1;
         }
     }
@@ -256,12 +260,14 @@ impl VM {
     }
 
     fn handle_op_jmp(&mut self, addr: usize) {
+//        assert!(addr+1 < self.bytecode.unwrap().len(), "jmp out of bounds");
         self.ip = addr;
     }
 
     fn handle_op_jz(&mut self, addr: usize) {
         let item = self.stack.pop().unwrap();
         if let Object::Bool(_b @ false) = item {
+//            assert!(addr+1 < self.bytecode.unwrap().len(), "jz out of bounds");
             self.ip = addr;
         }
     }
@@ -276,6 +282,7 @@ impl VM {
     fn handle_op_ret(&mut self) {
         let retaddr = self.frame_ptrs.pop().unwrap();
         let InternalObject::BytecodePtr(ptr, _) = retaddr;
+//        debug_assert!(ptr+1 < self.bytecode.unwrap().len(), "ret out of bounds");
         self.ip = ptr;
     }
 

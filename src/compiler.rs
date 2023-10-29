@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::parser::{
     AssignExpression, BinaryExpression, BinaryExpressionKind, BlockStatement, CallExpression,
     Expression, ExpressionStatement, FnStatement, IfStatement, Literal, LiteralExpression,
@@ -76,8 +78,9 @@ pub enum Opcode {
     Deepset(usize),
     Pop,
     Invoke(usize),
-    Str(Box<String>),
+    Str(Rc<str>),
     Strcat,
+    EndOfProgram,
 }
 
 trait Codegen {
